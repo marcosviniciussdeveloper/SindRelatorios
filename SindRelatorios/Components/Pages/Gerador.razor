@@ -1,0 +1,114 @@
+﻿@page "/gerador"
+
+@using SindRelatorios.Models
+@using SindRelatorios.Application
+@using SindRelatorios.Application.Providers
+
+<PageTitle>Gerador de Relatórios</PageTitle>
+
+<h1>Gerador de Relatórios de Aulas</h1>
+<p>Preencha os dados da turma para gerar a prévia do relatório.</p>
+
+<hr />
+
+<EditForm Model="input" OnValidSubmit="HandleGenerateSchedule" FormName="GeradorForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Data de Início:</label>
+            <InputDate @bind-Value="input.StartDate" class="form-control" />
+        </div>
+        <div class="col-md-8">
+            <label class="form-label">Nome do Instrutor (Padrão):</label>
+            <InputText @bind-Value="input.DefaultInstructor" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tipo de Curso:</label>
+            <InputSelect @bind-Value="input.Type" class="form-select" @onchange="OnCourseTypeChange">
+                <option value="">Selecione...</option>
+                <option value="@CourseType.FirstLicense">Primeira Habilitação</option>
+                <option value="@CourseType.Recycling">Reciclagem</option>
+            </InputSelect>
+        </div>
+
+        @if (input.Type == CourseType.FirstLicense)
+        {
+            <div class="col-md-6">
+                <label class="form-label">Turnos da Turma:</label>
+                <InputSelect @bind-Value="input.SelectedShift" class="form-select">
+                    <option value="NOITE,5">Noite (5h)</option>
+                    <option value="TARDE/NOITE,10">Tarde/Noite (10h)</option>
+                    <option value="MANHA/TARDE/NOITE,15">Manhã/Tarde/Noite (15h)</option>
+                </InputSelect>
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3" disabled="@isLoading">
+        @if (isLoading)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span> Gerando...</span>
+        }
+        else
+        {
+            <span>Gerar Prévia</span>
+        }
+    </button>
+</EditForm>
+
+
+@if (generatedClasses != null && generatedClasses.Any())
+{
+    <hr />
+    <h3>Prévia do Relatório</h3>
+    <p>Confira e ajuste os dados antes de exportar.</p>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Data</th>
+                    <th>Turno</th>
+                    <th>Disciplina</th>
+                    <th>Instrutor</th>
+                    <th>C.H.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var aula in generatedClasses)
+                {
+                    <tr>
+                        <td>
+                            <InputDate @bind-Value="aula.Date" class="form-control" />
+                        </td>
+                        <td>
+                            <InputText @bind-Value="aula.Shift" class="form-control" />
+                        </td>
+                        <td>
+                            @aula.Subject
+                        </td>
+                        <td>
+                            <InputText @bind-Value="aula.Instructor" class="form-control" />
+                        </td>
+                        <td>
+                            <InputNumber @bind-Value="aula.Hours" class="form-control" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end fw-bold">Total de Horas:</td>
+                    <td class="fw-bold">@generatedClasses.Sum(a => a.Hours)</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <button class="btn btn-success mt-2" @onclick="ExportToExcel">
+        <i class="oi oi-spreadsheet"></i> Exportar para Excel
+    </button>
+}

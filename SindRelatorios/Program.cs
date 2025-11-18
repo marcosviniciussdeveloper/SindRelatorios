@@ -2,7 +2,8 @@ using SindRelatorios.Application;
 using SindRelatorios.Application.Providers;
 using SindRelatorios.Components;
 using SindRelatorios.Infrastructure;
-using SindRelatorios.Providers; 
+using Microsoft.EntityFrameworkCore;
+using SindRelatorios.Providers;
 using SindRelatorios.Services; 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,17 +12,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-
-
-//  Registra o HttpClientFactory (para o HolidayService poder fazer chamadas API)
+// --- Serviços da Aplicação ---
 builder.Services.AddHttpClient(); 
-
-//Injeção de Dependência
 builder.Services.AddScoped<IHolidayService, HolidayService>();
 builder.Services.AddScoped<ICourseTemplateProvider, CourseTemplateProvider>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 
+// --- Conexão com o Banco de Dados (Supabase) ---
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<SindDbContext>(options =>
+    options.UseNpgsql(connectionString)
+);
 
 
 var app = builder.Build();
@@ -30,16 +34,15 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles(); 
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

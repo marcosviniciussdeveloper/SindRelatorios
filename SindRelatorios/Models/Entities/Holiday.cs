@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SindRelatorios.Data;
+namespace SindRelatorios.Models.Entities;
 
 public class Holiday
 {

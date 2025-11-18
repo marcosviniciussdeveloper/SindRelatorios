@@ -1,4 +1,4 @@
-﻿namespace SindRelatorios.Models;
+﻿namespace SindRelatorios.Models.Entities;
 
 public class CourseTemplate
 {

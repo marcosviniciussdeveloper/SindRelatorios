@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SindRelatorios.Infrastructure;
+using SindRelatorios.Infrastructure.Data;
 
 #nullable disable
 

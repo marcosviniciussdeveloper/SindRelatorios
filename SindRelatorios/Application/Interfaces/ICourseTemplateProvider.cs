@@ -1,7 +1,7 @@
-﻿using SindRelatorios.Data;
-using SindRelatorios.Models;
+﻿
+using SindRelatorios.Models.Entities;
 
-namespace SindRelatorios.Providers;
+namespace SindRelatorios.Application.Interfaces;
 
 public interface ICourseTemplateProvider
 {

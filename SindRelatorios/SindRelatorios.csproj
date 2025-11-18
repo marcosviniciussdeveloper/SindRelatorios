@@ -24,4 +24,10 @@
       <Content Remove="Components\Pages\Counter.razor" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Components\Pages\Instructor.cs">
+        <DependentUpon>Instructor.razor</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

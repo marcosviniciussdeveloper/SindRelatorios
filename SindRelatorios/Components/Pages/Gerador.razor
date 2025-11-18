@@ -2,113 +2,139 @@
 
 @using SindRelatorios.Models
 @using SindRelatorios.Application
-@using SindRelatorios.Application.Providers
 
 <PageTitle>Gerador de Relatórios</PageTitle>
 
-<h1>Gerador de Relatórios de Aulas</h1>
-<p>Preencha os dados da turma para gerar a prévia do relatório.</p>
+<div class="container-fluid">
 
-<hr />
-
-<EditForm Model="input" OnValidSubmit="HandleGenerateSchedule" FormName="GeradorForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="row g-3">
-        <div class="col-md-4">
-            <label class="form-label">Data de Início:</label>
-            <InputDate @bind-Value="input.StartDate" class="form-control" />
-        </div>
-        <div class="col-md-8">
-            <label class="form-label">Nome do Instrutor (Padrão):</label>
-            <InputText @bind-Value="input.DefaultInstructor" class="form-control" />
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Tipo de Curso:</label>
-            <InputSelect @bind-Value="input.Type" class="form-select" @onchange="OnCourseTypeChange">
-                <option value="">Selecione...</option>
-                <option value="@CourseType.FirstLicense">Primeira Habilitação</option>
-                <option value="@CourseType.Recycling">Reciclagem</option>
-            </InputSelect>
+    <div class="modern-card">
+        <div class="card-header-custom">
+            <h3><i class="bi bi-file-earmark-text-fill me-2"></i>Gerador de Relatórios</h3>
+            <p>Preencha os dados abaixo para calcular o cronograma automaticamente.</p>
         </div>
 
-        @if (input.Type == CourseType.FirstLicense)
-        {
-            <div class="col-md-6">
-                <label class="form-label">Turnos da Turma:</label>
-                <InputSelect @bind-Value="input.SelectedShift" class="form-select">
-                    <option value="NOITE,5">Noite (5h)</option>
-                    <option value="TARDE/NOITE,10">Tarde/Noite (10h)</option>
-                    <option value="MANHA/TARDE/NOITE,15">Manhã/Tarde/Noite (15h)</option>
-                </InputSelect>
-            </div>
-        }
-    </div>
+        <EditForm Model="input" OnValidSubmit="HandleGenerateSchedule" FormName="GeradorForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-    <button type="submit" class="btn btn-primary mt-3" disabled="@isLoading">
-        @if (isLoading)
-        {
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span> Gerando...</span>
-        }
-        else
-        {
-            <span>Gerar Prévia</span>
-        }
-    </button>
-</EditForm>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Data de Início</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        <InputDate @bind-Value="input.StartDate" class="form-control" />
+                    </div>
+                </div>
 
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">Instrutor Responsável</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                        <InputSelect @bind-Value="input.DefaultInstructor" class="form-select">
+                            <option value="">Selecione um instrutor...</option>
+                            @foreach (var instr in availableInstructors)
+                            {
+                                <option value="@instr.Name">@instr.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
 
-@if (generatedClasses != null && generatedClasses.Any())
-{
-    <hr />
-    <h3>Prévia do Relatório</h3>
-    <p>Confira e ajuste os dados antes de exportar.</p>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tipo de Curso</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-book"></i></span>
+                        <InputSelect @bind-Value="input.Type" class="form-select" @onchange="OnCourseTypeChange">
+                            <option value="@CourseType.FirstLicense">Primeira Habilitação</option>
+                            <option value="@CourseType.Recycling">Reciclagem</option>
+                        </InputSelect>
+                    </div>
+                </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Data</th>
-                    <th>Turno</th>
-                    <th>Disciplina</th>
-                    <th>Instrutor</th>
-                    <th>C.H.</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var aula in generatedClasses)
+                @if (input.Type == CourseType.FirstLicense)
                 {
-                    <tr>
-                        <td>
-                            <InputDate @bind-Value="aula.Date" class="form-control" />
-                        </td>
-                        <td>
-                            <InputText @bind-Value="aula.Shift" class="form-control" />
-                        </td>
-                        <td>
-                            @aula.Subject
-                        </td>
-                        <td>
-                            <InputText @bind-Value="aula.Instructor" class="form-control" />
-                        </td>
-                        <td>
-                            <InputNumber @bind-Value="aula.Hours" class="form-control" />
-                        </td>
-                    </tr>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Turnos da Turma</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                            <InputSelect @bind-Value="input.SelectedShift" class="form-select">
+                                <option value="NOITE,5">Noite (5h)</option>
+                                <option value="TARDE/NOITE,10">Tarde/Noite (10h)</option>
+                                <option value="MANHA/TARDE/NOITE,15">Manhã/Tarde/Noite (15h)</option>
+                            </InputSelect>
+                        </div>
+                    </div>
                 }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" class="text-end fw-bold">Total de Horas:</td>
-                    <td class="fw-bold">@generatedClasses.Sum(a => a.Hours)</td>
-                </tr>
-            </tfoot>
-        </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary-custom" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span><span class="spinner-border spinner-border-sm me-2"></span>Gerando...</span>
+                    }
+                    else
+                    {
+                        <span><i class="bi bi-magic me-2"></i>Gerar Prévia</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
     </div>
 
-    <button class="btn btn-success mt-2" @onclick="ExportToExcel">
-        <i class="oi oi-spreadsheet"></i> Exportar para Excel
-    </button>
-}
+
+    @if (generatedClasses != null && generatedClasses.Any())
+    {
+        <div class="modern-card mt-4 animate__animated animate__fadeInUp">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="text-primary mb-0">Prévia do Relatório</h4>
+                <span class="badge bg-info text-dark">@generatedClasses.Count aulas geradas</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-modern table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Data</th>
+                            <th style="width: 15%">Turno</th>
+                            <th style="width: 35%">Disciplina</th>
+                            <th style="width: 25%">Instrutor</th>
+                            <th style="width: 10%">C.H.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var aula in generatedClasses)
+                        {
+                            <tr>
+                                <td><InputDate @bind-Value="aula.Date" class="form-control form-control-sm" /></td>
+                                <td><InputText @bind-Value="aula.Shift" class="form-control form-control-sm" /></td>
+                                <td class="text-muted">@aula.Subject</td>
+                                <td>
+                                    <InputSelect @bind-Value="aula.Instructor" class="form-select form-select-sm">
+                                        @foreach (var instr in availableInstructors)
+                                        {
+                                            <option value="@instr.Name">@instr.Name</option>
+                                        }
+                                    </InputSelect>
+                                </td>
+                                <td><InputNumber @bind-Value="aula.Hours" class="form-control form-control-sm" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light fw-bold">
+                            <td colspan="4" class="text-end">TOTAL GERAL:</td>
+                            <td class="text-primary fs-5">@generatedClasses.Sum(a => a.Hours) h</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-success btn-lg shadow" @onclick="ExportToExcel">
+                    <i class="bi bi-file-earmark-excel-fill me-2"></i> Exportar para Excel
+                </button>
+            </div>
+        </div>
+    }
+</div>

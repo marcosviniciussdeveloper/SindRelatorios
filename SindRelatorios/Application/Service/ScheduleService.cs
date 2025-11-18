@@ -1,7 +1,8 @@
 ﻿using SindRelatorios.Models;
 using SindRelatorios.Infrastructure;
-using SindRelatorios.Providers;
-using SindRelatorios.Services;
+using SindRelatorios.Application.Interfaces;
+using SindRelatorios.Models.Entities;
+
 
 namespace SindRelatorios.Application
 {
@@ -65,5 +66,7 @@ namespace SindRelatorios.Application
 
             return scheduleRows;
         }
+
+    
     }
 }

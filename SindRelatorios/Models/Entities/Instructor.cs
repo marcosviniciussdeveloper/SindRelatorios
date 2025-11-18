@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SindRelatorios.Models
+namespace SindRelatorios.Models.Entities
 {
     public class Instructor
     {

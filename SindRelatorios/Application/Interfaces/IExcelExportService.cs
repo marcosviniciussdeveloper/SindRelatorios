@@ -1,6 +1,7 @@
 ﻿using SindRelatorios.Models;
+using SindRelatorios.Models.Entities;
 
-namespace SindRelatorios.Application
+namespace SindRelatorios.Application.Interfaces
 {
     public interface IExcelExportService
     {

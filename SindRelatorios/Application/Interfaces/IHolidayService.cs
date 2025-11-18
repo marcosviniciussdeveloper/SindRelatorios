@@ -1,4 +1,4 @@
-﻿namespace SindRelatorios.Services;
+﻿namespace SindRelatorios.Application.Interfaces;
 
 public interface IHolidayService
 {

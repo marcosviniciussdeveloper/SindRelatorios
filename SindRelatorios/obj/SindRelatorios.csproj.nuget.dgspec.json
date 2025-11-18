@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/home/marcosdev/SindRelatorios/SindRelatorios/SindRelatorios/SindRelatorios.csproj": {}
+    "C:\\Users\\Sindauto\\Desktop\\SindRelatorios\\SindRelatorios\\SindRelatorios\\SindRelatorios.csproj": {}
   },
   "projects": {
-    "/home/marcosdev/SindRelatorios/SindRelatorios/SindRelatorios/SindRelatorios.csproj": {
+    "C:\\Users\\Sindauto\\Desktop\\SindRelatorios\\SindRelatorios\\SindRelatorios\\SindRelatorios.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/marcosdev/SindRelatorios/SindRelatorios/SindRelatorios/SindRelatorios.csproj",
+        "projectUniqueName": "C:\\Users\\Sindauto\\Desktop\\SindRelatorios\\SindRelatorios\\SindRelatorios\\SindRelatorios.csproj",
         "projectName": "SindRelatorios",
-        "projectPath": "/home/marcosdev/SindRelatorios/SindRelatorios/SindRelatorios/SindRelatorios.csproj",
-        "packagesPath": "/home/marcosdev/.nuget/packages/",
-        "outputPath": "/home/marcosdev/SindRelatorios/SindRelatorios/SindRelatorios/obj/",
+        "projectPath": "C:\\Users\\Sindauto\\Desktop\\SindRelatorios\\SindRelatorios\\SindRelatorios\\SindRelatorios.csproj",
+        "packagesPath": "C:\\Users\\Sindauto\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Sindauto\\Desktop\\SindRelatorios\\SindRelatorios\\SindRelatorios\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/marcosdev/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Sindauto\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -37,7 +44,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -83,7 +91,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/marcosdev/.dotnet/sdk/8.0.416/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

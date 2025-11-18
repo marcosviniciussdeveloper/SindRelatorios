@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using SindRelatorios.Models;
+using SindRelatorios.Models.Entities;
 
-namespace SindRelatorios.Infrastructure;
+namespace SindRelatorios.Infrastructure.Data;
 
 public class SindDbContext :DbContext
 {
@@ -9,6 +9,5 @@ public class SindDbContext :DbContext
      {
          
      }
-
      DbSet<Instructor> Instructors { get; set; }
 }

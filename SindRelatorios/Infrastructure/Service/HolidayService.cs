@@ -1,8 +1,8 @@
-﻿// Dentro de /Services/HolidayService.cs
-using SindRelatorios.Data;
+﻿using SindRelatorios.Models.Entities;
 using System.Text.Json;
+using SindRelatorios.Application.Interfaces;
 
-namespace SindRelatorios.Services
+namespace SindRelatorios.Infrastructure.Services
 {
     
     /// Serviço para obter feriados de um determinado ano.

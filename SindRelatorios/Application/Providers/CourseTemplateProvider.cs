@@ -1,5 +1,7 @@
-﻿using SindRelatorios.Models;
-using SindRelatorios.Providers;
+﻿using SindRelatorios.Application.Interfaces;
+using SindRelatorios.Models;
+using SindRelatorios.Application.Providers;
+using SindRelatorios.Models.Entities;
 
 namespace SindRelatorios.Application.Providers
 {

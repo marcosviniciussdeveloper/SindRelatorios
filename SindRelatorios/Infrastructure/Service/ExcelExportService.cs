@@ -1,15 +1,15 @@
 ﻿using ClosedXML.Excel;
-using SindRelatorios.Application;
-using SindRelatorios.Models;
+using SindRelatorios.Application.Interfaces;
+using SindRelatorios.Models.Entities;
 
-namespace SindRelatorios.Infrastructure
+namespace SindRelatorios.Infrastructure.Services
 {
     public class ExcelExportService : IExcelExportService
     {
         public byte[] ExportReport(List<ScheduleRow> scheduleRows)
         {
             using var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Relatório de Aulas"); // Nome da aba em Português
+            var worksheet = workbook.Worksheets.Add("Relatório de Aulas"); 
 
             // Cabeçalho (em Português, pois é para o usuário final)
             worksheet.Cell(1, 1).Value = "DATA";
@@ -34,9 +34,8 @@ namespace SindRelatorios.Infrastructure
                 currentRow++;
             }
 
-            // Totalizador
             int totalRow = currentRow;
-            worksheet.Cell(totalRow, 4).Value = "TOTAL"; // Em Português
+            worksheet.Cell(totalRow, 4).Value = "TOTAL"; 
             worksheet.Cell(totalRow, 4).Style.Font.Bold = true;
             worksheet.Cell(totalRow, 5).FormulaA1 = $"=SUM(E2:E{currentRow - 1})";
             worksheet.Cell(totalRow, 5).Style.Font.Bold = true;

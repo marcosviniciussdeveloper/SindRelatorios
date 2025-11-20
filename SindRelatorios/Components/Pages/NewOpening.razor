@@ -1,0 +1,130 @@
+@page "/escalas/nova"
+@using Microsoft.AspNetCore.Components.Forms
+@using SindRelatorios.Models.Entities.Enums
+@using SindRelatorios.Components.Shared
+
+<PageTitle>Nova Abertura</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary me-3 border-0" @onclick='() => Navigation.NavigateTo("escalas")'>
+                <i class="bi bi-arrow-left fs-4"></i>
+            </button>
+            <div>
+                <h3 class="fw-bold text-secondary m-0">Nova Escala</h3>
+                <small class="text-muted">Selecione o tipo de turma abaixo.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <!-- ABAS DE SELEÇÃO -->
+            <div class="d-flex gap-2 mb-3">
+                <button class="btn px-4 py-2 fw-bold @(_activeTab == OpeningType.Standard ? "btn-primary shadow" : "btn-light text-muted border")"
+                        @onclick="() => ChangeTab(OpeningType.Standard)">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i> Primeira Habilitação
+                </button>
+                <button class="btn px-4 py-2 fw-bold @(_activeTab == OpeningType.Recycling ? "btn-success shadow" : "btn-light text-muted border")"
+                        @onclick="() => ChangeTab(OpeningType.Recycling)">
+                    <i class="bi bi-recycle me-2"></i> Reciclagem
+                </button>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    
+                    <EditForm Model="InputData" OnValidSubmit="HandleSave" FormName="CreateOpeningForm">
+                        <DataAnnotationsValidator />
+
+                        <!-- HEADER ESPECÍFICO POR TIPO -->
+                        <div class="alert @(_activeTab == OpeningType.Recycling ? "alert-success" : "alert-primary") mb-4 d-flex align-items-center">
+                            <i class="bi @(_activeTab == OpeningType.Recycling ? "bi-recycle" : "bi-info-circle") fs-4 me-3"></i>
+                            <div>
+                                <strong>Criando Escala de: @(_activeTab == OpeningType.Recycling ? "RECICLAGEM" : "PRIMEIRA HABILITAÇÃO")</strong>
+                                <div class="small">@(_activeTab == OpeningType.Recycling ? "Turma única, 5 dias (Segunda a Sexta)." : "Múltiplos instrutores, possibilidade de turmas extras.")</div>
+                            </div>
+                        </div>
+
+                        <!-- CONFIGURAÇÃO DE DATA/REGIÃO -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary small">DATA DE INÍCIO</label>
+                                <InputDate @bind-Value="InputData.Date" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary small">REGIÃO</label>
+                                <InputSelect @bind-Value="InputData.Region" class="form-select">
+                                    <option value="@RegionType.Salvador">Salvador / Lauro</option>
+                                    <option value="@RegionType.Interior">Interior</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <hr class="text-muted opacity-25 my-4">
+
+                        <!-- ALOCAÇÃO DE INSTRUTORES -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-secondary m-0 small ls-1">INSTRUTORES ESCALADOS</h6>
+                            <!-- Só permite adicionar mais linhas se for Standard -->
+                            @if (_activeTab == OpeningType.Standard)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSlot">
+                                    <i class="bi bi-plus-lg"></i> Adicionar
+                                </button>
+                            }
+                        </div>
+
+                        <div class="table-responsive mb-4 border rounded-3">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-secondary small border-bottom">
+                                    <tr>
+                                        <th style="width: 60%" class="ps-3">INSTRUTOR</th>
+                                        <th style="width: 30%">TURNO</th>
+                                        <th style="width: 10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var slot in InputData.Slots)
+                                    {
+                                        <tr>
+                                            <td class="ps-3">
+                                                <InstructorAutocomplete AllInstructors="AllInstructors" @bind-Value="slot.InstructorName" />
+                                            </td>
+                                            <td>
+                                                <InputSelect @bind-Value="slot.Shift" class="form-select form-select-sm">
+                                                    <option value="NOITE">Noite</option>
+                                                    <option value="MANHA">Manhã</option>
+                                                    <option value="TARDE">Tarde</option>
+                                                </InputSelect>
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                @if (_activeTab == OpeningType.Standard)
+                                                {
+                                                    <button type="button" class="btn btn-link text-danger p-0" @onclick="() => RemoveSlot(slot)">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-end pt-3 border-top">
+                            <button type="submit" class="btn @(_activeTab == OpeningType.Recycling ? "btn-success" : "btn-primary") px-5 fw-bold shadow-sm">
+                                Salvar Escala
+                            </button>
+                        </div>
+
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>.ls-1 { letter-spacing: 1px; }</style>

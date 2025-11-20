@@ -1,0 +1,125 @@
+@using SindRelatorios.Models.Entities
+
+<div class="position-relative">
+    <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white text-primary border-end-0">
+            <i class="bi bi-search"></i>
+        </span>
+        
+        <!-- CORREÇÃO AQUI: Usamos @bind-value e @bind-value:event -->
+        <input type="text" 
+               class="form-control border-start-0" 
+               placeholder="Buscar instrutor..."
+               value="@SearchText"
+               @oninput="OnInputChanged"
+               @onfocus="OpenDropdown"
+               @onblur="CloseDropdownAsync" />
+        
+        @if (!string.IsNullOrEmpty(SearchText))
+        {
+            <button type="button" class="btn btn-outline-secondary border border-start-0" @onclick="ClearSelection">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        }
+    </div>
+
+    <!-- Dropdown -->
+    @if (_isDropdownOpen)
+    {
+        <div class="card position-absolute w-100 shadow-lg border-0 mt-1" 
+             style="z-index: 1050; max-height: 250px; overflow-y: auto;">
+            <ul class="list-group list-group-flush">
+                @if (_filteredList.Any())
+                {
+                    @foreach (var instr in _filteredList)
+                    {
+                        <button type="button" 
+                                class="list-group-item list-group-item-action text-start small"
+                                @onmousedown="() => SelectInstructor(instr.Name)">
+                            @instr.Name
+                        </button>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted small text-center fst-italic">
+                        Nenhum instrutor encontrado.
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<Instructor> AllInstructors { get; set; } = new();
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private string SearchText { get; set; } = "";
+    private List<Instructor> _filteredList = new();
+    private bool _isDropdownOpen = false;
+
+    protected override void OnParametersSet()
+    {
+        // Garante que a lista não seja nula
+        if (AllInstructors == null) AllInstructors = new List<Instructor>();
+
+        // Sincroniza se o valor vier do pai (ex: banco de dados)
+        if (Value != SearchText)
+        {
+            SearchText = Value ?? "";
+        }
+    }
+
+    // --- O PULO DO GATO: Evento disparado a cada letra digitada ---
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        SearchText = e.Value?.ToString() ?? "";
+        FilterList();
+        _isDropdownOpen = true;
+    }
+
+    private void FilterList()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            // Se vazio, mostra os 10 primeiros (ou todos se tiver poucos)
+            _filteredList = AllInstructors.Take(10).ToList();
+        }
+        else
+        {
+            // Filtra ignorando maiúsculas/minúsculas
+            _filteredList = AllInstructors
+                .Where(i => i.Name != null && i.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private void OpenDropdown()
+    {
+        FilterList();
+        _isDropdownOpen = true;
+    }
+
+    private async Task CloseDropdownAsync()
+    {
+        await Task.Delay(200); // Espera o clique acontecer antes de fechar
+        _isDropdownOpen = false;
+    }
+
+    private async Task SelectInstructor(string name)
+    {
+        SearchText = name;
+        _isDropdownOpen = false;
+        await ValueChanged.InvokeAsync(name); // Avisa o pai
+    }
+
+    private async Task ClearSelection()
+    {
+        SearchText = "";
+        _isDropdownOpen = false;
+        await ValueChanged.InvokeAsync(""); // Limpa no pai
+        FilterList();
+    }
+}

@@ -37,6 +37,25 @@ public class Repository<T> : IRepository<T> where T : class
   
     public async Task<T> UpdateAsync(T entity)
     {
+
+        var idProperty = typeof(T).GetProperty("Id");
+        
+        if (idProperty != null)
+        {
+            var entityId = (Guid)idProperty.GetValue(entity);
+
+     
+            var existingEntity = _dbSet.Local.FirstOrDefault(e => 
+                (Guid)e.GetType().GetProperty("Id").GetValue(e) == entityId);
+
+            
+            if (existingEntity != null)
+            {
+                _context.Entry(existingEntity).State = EntityState.Detached;
+            }
+        }
+
+     
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();
         return entity;

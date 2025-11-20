@@ -1,6 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Routing
 
-<div class="d-flex flex-column gap-1 px-2">
+<div class="d-flex flex-column gap-2 px-3">
     
     <!-- Dashboard -->
     <NavLink class="@GetLinkClasses()" href="" Match="NavLinkMatch.All">
@@ -9,18 +9,29 @@
         </div>
         @if (!Collapsed)
         {
-            <span class="text-nowrap fade-in">Dashboard</span>
+            <span class="text-nowrap fade-in fw-medium">Dashboard</span>
         }
     </NavLink>
 
     <!-- Gerador -->
     <NavLink class="@GetLinkClasses()" href="gerador">
         <div class="@GetIconContainerClasses()">
-            <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
+            <i class="bi bi-file-earmark-text fs-5"></i>
         </div>
         @if (!Collapsed)
         {
-            <span class="text-nowrap fade-in">Gerador</span>
+            <span class="text-nowrap fade-in fw-medium">Gerador</span>
+        }
+    </NavLink>
+
+    <!-- Escalas -->
+    <NavLink class="@GetLinkClasses()" href="escalas">
+        <div class="@GetIconContainerClasses()">
+            <i class="bi bi-calendar-week fs-5"></i>
+        </div>
+        @if (!Collapsed)
+        {
+            <span class="text-nowrap fade-in fw-medium">Escalas</span>
         }
     </NavLink>
 
@@ -31,30 +42,34 @@
         </div>
         @if (!Collapsed)
         {
-            <span class="text-nowrap fade-in">Instrutores</span>
+            <span class="text-nowrap fade-in fw-medium">Instrutores</span>
         }
     </NavLink>
 
 </div>
 
 <style>
-    .fade-in {
-        animation: fadeIn 0.3s ease-in;
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Link Padrão */
+    .nav-link {
+        color: #94a3b8 !important; /* Cinza claro */
+        transition: all 0.2s ease;
     }
     
-    @@keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    /* Hover */
+    .nav-link:hover {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: translateX(3px); 
     }
 
+   
     .nav-link.active {
-        background-color: #0d6efd !important;
+        background-color: #3b82f6 !important; 
         color: white !important;
-    }
-    
-    .nav-link:hover:not(.active) {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); 
     }
 </style>
 
@@ -64,7 +79,8 @@
 
     private string GetLinkClasses()
     {
-        return $"nav-link text-white opacity-75 rounded-3 d-flex align-items-center py-3 {(Collapsed ? "justify-content-center" : "px-3 gap-3")}";
+     
+        return $"nav-link rounded-3 d-flex align-items-center py-3 {(Collapsed ? "justify-content-center px-0" : "px-3 gap-3")}";
     }
 
     private string GetIconContainerClasses()

@@ -1,96 +1,157 @@
 ﻿@page "/instructors"
 @using Microsoft.AspNetCore.Components.Forms
+@using SindRelatorios.Models.Entities
+
 
 <PageTitle>Gerenciar Instrutores</PageTitle>
 
 <div class="container-fluid p-0">
-    <h2 class="mb-4 text-secondary">Gerenciar Instrutores</h2>
-
-    @if (!string.IsNullOrEmpty(_errorMessage))
-    {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @_errorMessage
-            <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+    
+    <!-- Cabeçalho Padronizado -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary">
+                <i class="bi bi-person-vcard-fill fs-4"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold text-secondary m-0">Instrutores</h3>
+                <small class="text-muted">Gerencie o cadastro da equipe de ensino.</small>
+            </div>
         </div>
-    }
-
-    @if (!string.IsNullOrEmpty(_successMessage))
-    {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm">
-            <i class="bi bi-check-circle-fill me-2"></i> @_successMessage
-            <button type="button" class="btn-close" @onclick="() => _successMessage = null"></button>
+        
+        <div class="badge bg-white text-secondary border shadow-sm py-2 px-3">
+            <i class="bi bi-people-fill me-1 text-primary"></i> Total: @(FilteredList.Count)
         </div>
-    }
+    </div>
 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white border-bottom fw-bold py-3">
-                    <i class="bi bi-person-plus-fill me-2 text-success"></i> Novo Instrutor
+    <div class="row g-4">
+        <!-- COLUNA DA ESQUERDA: FORMULÁRIO -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 fw-bold text-secondary border-bottom-0">
+                    <i class="bi bi-plus-circle me-2 text-primary"></i>Novo Cadastro
                 </div>
                 <div class="card-body">
-                    
                     <EditForm Model="NewInstructor" OnValidSubmit="HandleAddInstructor" FormName="CreateInstructorForm">
                         <DataAnnotationsValidator />
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-secondary">Nome Completo</label>
-                            <InputText @bind-Value="NewInstructor.Name" 
-                                       class="form-control py-2" 
-                                       placeholder="Ex: JOSÉ DA SILVA" />
-                            <ValidationMessage For="() => NewInstructor.Name" class="text-danger small" />
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary small">NOME COMPLETO</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                <InputText @bind-Value="NewInstructor.Name" 
+                                           class="form-control border-start-0 ps-0" 
+                                           placeholder="Ex: MARIA OLIVEIRA" />
+                            </div>
+                            <ValidationMessage For="() => NewInstructor.Name" class="text-danger small mt-1" />
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success py-2">
-                                <i class="bi bi-save"></i> Salvar
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                <i class="bi bi-save me-2"></i> Salvar Instrutor
                             </button>
                         </div>
+                        
+                        @if (!string.IsNullOrEmpty(_message))
+                        {
+                            <div class="alert alert-@_messageType mt-3 small mb-0 py-2 text-center fade-in">
+                                @_message
+                            </div>
+                        }
                     </EditForm>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-7">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom fw-bold py-3">
-                    <i class="bi bi-list-ul me-2 text-primary"></i> Cadastrados (@(_instructorsList?.Count ?? 0))
+        <!-- COLUNA DA DIREITA: LISTAGEM -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                
+                <!-- Barra de Busca e Título -->
+                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h5 class="m-0 fw-bold text-secondary fs-6">Instrutores Cadastrados</h5>
+                    
+                    <div class="input-group input-group-sm" style="max-width: 250px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" 
+                               placeholder="Buscar..." 
+                               @bind="SearchTerm" 
+                               @bind:event="oninput" />
+                    </div>
                 </div>
+
                 <div class="card-body p-0">
-                    @if (_instructorsList == null)
+                    @if (InstructorsList == null)
                     {
                         <div class="p-5 text-center text-muted">
                             <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
                             <p>Carregando...</p>
                         </div>
                     }
-                    else if (!_instructorsList.Any())
+                    else if (!FilteredList.Any())
                     {
                         <div class="p-5 text-center text-muted">
-                            Nenhum instrutor encontrado.
+                            <i class="bi bi-inbox fs-1 opacity-50"></i>
+                            <p class="mt-2">Nenhum instrutor encontrado.</p>
                         </div>
                     }
                     else
                     {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var item in _instructorsList)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                                    <span class="fw-medium text-dark">@item.Name</span>
-                                    
-                                    <button type="button" 
-                                            class="btn btn-outline-danger btn-sm border-0" 
-                                            title="Excluir"
-                                            @onclick="() => HandleDelete(item.Id)"
-                                            @onclick:stopPropagation="true">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                </li>
-                            }
-                        </ul>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-secondary small text-uppercase">
+                                    <tr>
+                                        <th class="ps-4 py-3">Nome</th>
+                                        <th class="text-end pe-4">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in FilteredList)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle me-3">
+                                                        @GetInitials(item.Name)
+                                                    </div>
+                                                    <span class="fw-semibold text-dark">@item.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-icon btn-hover-danger" 
+                                                        title="Excluir"
+                                                        @onclick="() => HandleDelete(item.Id)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .avatar-circle {
+        width: 35px; height: 35px;
+        background-color: #e2e8f0; color: #475569;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; font-size: 14px; text-transform: uppercase;
+    }
+    .btn-icon {
+        width: 32px; height: 32px; padding: 0;
+        border-radius: 6px; border: none; background: transparent;
+        color: #64748b; transition: all 0.2s;
+    }
+    .btn-icon:hover { background-color: #f1f5f9; color: #334155; }
+    .btn-hover-danger:hover { background-color: #fee2e2; color: #ef4444; }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .form-control:focus { border-color: #3b82f6; box-shadow: none; background-color: #f8fafc; }
+</style>

@@ -1,0 +1,232 @@
+@page "/escalas"
+@using SindRelatorios.Models.Entities
+@using SindRelatorios.Models.Entities.Enums
+@using System.Globalization
+
+<PageTitle>Gestão de Escalas</PageTitle>
+
+<div class="container-fluid p-0">
+    
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary">
+                <i class="bi bi-calendar-range fs-4"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold text-secondary m-0">Cronograma de Aberturas</h3>
+                <small class="text-muted">Gerencie as datas e alocações de turmas.</small>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary shadow-sm fw-bold" @onclick="NavigateToNew">
+            <i class="bi bi-plus-lg me-2"></i> Nova Abertura
+        </button>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Carregando escalas...</p>
+        </div>
+    }
+    else if (!Openings.Any())
+    {
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <div class="opacity-25 mb-3"><i class="bi bi-calendar4-week fs-1 text-secondary"></i></div>
+                <h5 class="text-secondary fw-bold">Nenhuma escala encontrada</h5>
+                <button class="btn btn-sm btn-outline-primary mt-3" @onclick="NavigateToNew">Criar Primeira</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            
+            <!-- ================================================== -->
+            <!-- COLUNA ESQUERDA: PRIMEIRA HABILITAÇÃO (COMPLEXO)   -->
+            <!-- ================================================== -->
+            <div class="col-lg-8">
+                <h6 class="text-secondary fw-bold mb-3 ps-2 border-start border-4 border-primary">
+                    PRIMEIRA HABILITAÇÃO
+                </h6>
+                
+                <div class="row g-4">
+                    @foreach (var item in Openings.Where(x => x.Type == OpeningType.Standard))
+                    {
+                        // Lógica de separação Regular vs Extra
+                        var regularSlots = item.Slots.Where(x => !x.IsExtra).ToList();
+                        var extraSlots = item.Slots.Where(x => x.IsExtra).ToList();
+                        var isSalvador = item.Region == RegionType.Salvador;
+
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
+                                
+                                <!-- Cabeçalho do Card -->
+                                <div class="card-header text-white d-flex justify-content-between align-items-center py-2 @(isSalvador ? "bg-danger" : "bg-warning text-dark")">
+                                    <span class="fw-bold text-uppercase small ls-1">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>@item.Region
+                                    </span>
+                                    <span class="badge bg-white text-dark border-0">
+                                        @item.Date.ToString("dd/MM/yyyy")
+                                    </span>
+                                </div>
+
+                                <div class="card-body p-0">
+                                    <!-- GRADE NORMAL (RESTAURADA AQUI) -->
+                                    @if (regularSlots.Any())
+                                    {
+                                        <table class="table table-sm align-middle mb-0 table-borderless border-bottom">
+                                            <thead class="text-muted small border-bottom bg-light">
+                                                <tr>
+                                                    <th class="ps-3">INSTRUTOR</th>
+                                                    <th class="text-center">TURNO</th>
+                                                    <th class="text-end pe-3">STATUS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach(var slot in regularSlots)
+                                                {
+                                                    <tr>
+                                                        <td class="ps-3 fw-bold text-secondary text-truncate" style="max-width: 250px;">
+                                                            @slot.Instructor?.Name
+                                                        </td>
+                                                        <td class="text-center small text-uppercase">@slot.Shift</td>
+                                                        <td class="text-end pe-3">
+                                                            @if(slot.Status == SlotStatus.Aberto)
+                                                            {
+                                                                <i class="bi bi-check-circle-fill text-success" title="Aberto"></i>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-light text-secondary border fw-normal">@slot.Status</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div class="p-3 text-center text-muted small bg-light">Sem grade regular definida.</div>
+                                    }
+
+                                    <!-- EXTRAS (RODAPÉ VERMELHO) -->
+                                    @if (extraSlots.Any())
+                                    {
+                                        <div class="p-2 bg-light border-top">
+                                            <div class="text-danger fw-bold x-small mb-2 px-1">
+                                                <i class="bi bi-lightning-fill"></i> EXTRAS / RESERVA
+                                            </div>
+                                            <div class="d-flex flex-column gap-1">
+                                                @foreach (var extra in extraSlots)
+                                                {
+                                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded border-start border-3 border-danger shadow-sm">
+                                                        <span class="text-dark fw-bold small text-truncate ps-1" style="max-width: 200px;">
+                                                            @extra.Instructor?.Name
+                                                        </span>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="badge bg-danger" style="font-size: 0.65rem;">@extra.Shift</span>
+                                                            @if(extra.Status == SlotStatus.Aberto) {
+                                                                <i class="bi bi-check-circle-fill text-success small"></i>
+                                                            } else {
+                                                                <i class="bi bi-hourglass-split text-warning small" title="Fila"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <!-- RODAPÉ COM AÇÕES -->
+                                <div class="card-footer bg-white border-top d-flex justify-content-between p-2">
+                                    <button class="btn btn-sm btn-link text-danger text-decoration-none p-0 ps-2" 
+                                            @onclick="() => HandleDelete(item)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                    <button class="btn btn-sm btn-outline-primary fw-bold px-3" 
+                                            @onclick="() => NavigateToDetails(item.Id)">
+                                        Editar <i class="bi bi-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (!Openings.Any(x => x.Type == OpeningType.Standard))
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-light border text-center text-muted">
+                                Nenhuma turma de Primeira Habilitação programada.
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ================================================== -->
+            <!-- COLUNA DIREITA: RECICLAGEM (SIMPLES/COMPACTO)      -->
+            <!-- ================================================== -->
+            <div class="col-lg-4">
+                <h6 class="text-secondary fw-bold mb-3 ps-2 border-start border-4 border-success">
+                    RECICLAGEM
+                </h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var item in Openings.Where(x => x.Type == OpeningType.Recycling))
+                    {
+                        var instructor = item.Slots.FirstOrDefault()?.Instructor?.Name ?? "Sem Instrutor";
+                        
+                        <div class="card shadow-sm border-0 border-start border-success border-4">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold text-dark m-0">@item.Date.ToString("dd/MM/yyyy")</h6>
+                                        <span class="text-muted x-small">@item.Region</span>
+                                    </div>
+                                    <i class="bi bi-recycle text-success fs-5 opacity-50"></i>
+                                </div>
+                                
+                                <div class="d-flex align-items-center gap-2 mb-3 bg-light p-2 rounded">
+                                    <div class="avatar-xs bg-white border text-success rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                                        @instructor.Substring(0,1)
+                                    </div>
+                                    <span class="fw-bold text-secondary small text-truncate">@instructor</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <button class="btn btn-sm btn-link text-danger p-0" @onclick="() => HandleDelete(item)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success py-1 px-3" @onclick="() => NavigateToDetails(item.Id)">
+                                        Editar <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (!Openings.Any(x => x.Type == OpeningType.Recycling))
+                    {
+                        <div class="alert alert-light border text-center text-muted py-4">
+                            Nenhuma reciclagem.
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    }
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 1px; }
+    .x-small { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .avatar-xs { width: 24px; height: 24px; font-size: 12px; }
+    
+    .table-sm td, .table-sm th { padding: 0.5rem 0.5rem; }
+</style>

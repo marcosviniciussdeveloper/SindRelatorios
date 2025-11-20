@@ -3,62 +3,71 @@
 <div class="d-flex" style="height: 100vh; overflow: hidden;">
 
     <!-- 1. SIDEBAR -->
-    <div class="d-flex flex-column bg-dark text-white border-end"
-         style="width: @(_collapsed ? "80px" : "260px");
-                min-width: @(_collapsed ? "80px" : "260px");
-                height: 100vh;
+    <div class="d-flex flex-column bg-dark text-white border-end transition-sidebar" 
+         style="width: @(_collapsed ? "80px" : "260px"); 
+                min-width: @(_collapsed ? "80px" : "260px"); 
+                height: 100vh; 
+                background-color: #1e293b !important; 
                 transition: all 0.3s ease;">
-
-        <!-- HEADER DA SIDEBAR (Logo + Botão) -->
-        <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary"
+        
+        <div class="d-flex align-items-center px-4 border-bottom border-secondary border-opacity-25" 
              style="height: 70px;">
-
-            <!-- Logo e Texto (Só aparece se aberto) -->
-            @if (!_collapsed)
-            {
-                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                    <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                        <i class="bi bi-grid-1x2-fill text-white"></i>
-                    </div>
-                    <span class="fw-bold fs-5 text-nowrap">SindRelat.</span>
+            
+            <!-- Logo e Texto -->
+            <div class="d-flex align-items-center gap-3 w-100 @(_collapsed ? "justify-content-center" : "")">
+                <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center flex-shrink-0" 
+                     style="width: 36px; height: 36px;">
+                     <i class="bi bi-grid-1x2-fill text-white fs-5"></i>
                 </div>
+                
+                @if (!_collapsed)
+                {
+                    <span class="fw-bold fs-5 text-nowrap tracking-wide">SindRelat.</span>
+                    
+                 
+                    <button class="btn btn-link text-secondary p-0 ms-auto" @onclick="ToggleSidebar">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                }
+            </div>
+            
+            @if (_collapsed)
+            {
+                
+                <button class="btn btn-link text-secondary p-0 position-absolute" 
+                        style="left: 50%; transform: translateX(-50%); top: 80px;"
+                        @onclick="ToggleSidebar">
+                    <i class="bi bi-arrow-right-circle fs-4"></i>
+                </button>
             }
-
-            <!-- Botão Toggle (Sempre visível, muda o ícone) -->
-            <button class="btn btn-link text-white p-0 text-decoration-none @(_collapsed ? "w-100 text-center" : "")"
-                    @onclick="ToggleSidebar"
-                    title="Alternar Menu">
-                <i class="bi @(_collapsed ? "bi-list fs-3" : "bi-list fs-4")"></i>
-            </button>
         </div>
 
         <!-- MENU -->
-        <div class="flex-grow-1 overflow-hidden py-2">
+        <div class="flex-grow-1 overflow-y-auto overflow-x-hidden py-4">
             <NavMenu Collapsed="_collapsed" />
         </div>
 
         <!-- FOOTER -->
-        <div class="p-3 border-top border-secondary text-center text-muted small">
-            @if (!_collapsed)
-            {
-                <span>v1.0.0</span>
-            }
+        <div class="p-3 border-top border-secondary border-opacity-25 text-center text-muted small">
+            @if (!_collapsed) { <span class="opacity-50">Versão 1.0</span> }
         </div>
     </div>
 
     <!-- 2. CONTEÚDO PRINCIPAL -->
     <div class="d-flex flex-column flex-grow-1 bg-light" style="overflow-y: auto;">
-
-        <!-- Topbar Simplificada (Sem botão de menu) -->
-        <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3 sticky-top justify-content-between">
+        
+        <nav class="navbar navbar-light bg-white shadow-sm px-4 sticky-top border-bottom" style="height: 70px; min-height: 70px;">
             <span class="navbar-text fw-bold text-secondary">
                 Painel Administrativo
             </span>
 
             <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
-                    <i class="bi bi-person-fill"></i> Admin
-                </span>
+                <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                        <i class="bi bi-person-fill small"></i>
+                    </div>
+                    <span class="small fw-bold text-secondary me-1">Admin</span>
+                </div>
             </div>
         </nav>
 
@@ -68,11 +77,14 @@
     </div>
 </div>
 
+<style>
+    .tracking-wide { letter-spacing: 0.5px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+</style>
+
 @code {
     private bool _collapsed = false;
-
-    private void ToggleSidebar()
-    {
-        _collapsed = !_collapsed;
-    }
+    private void ToggleSidebar() => _collapsed = !_collapsed;
 }

@@ -2,7 +2,7 @@
 using System.Text.Json;
 using SindRelatorios.Application.Interfaces;
 
-namespace SindRelatorios.Infrastructure.Services
+namespace SindRelatorios.Infrastructure.Service
 {
     
     /// Serviço para obter feriados de um determinado ano.

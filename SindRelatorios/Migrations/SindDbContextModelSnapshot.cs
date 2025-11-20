@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SindRelatorios.Infrastructure;
 using SindRelatorios.Infrastructure.Data;
 
 #nullable disable
@@ -23,7 +22,7 @@ namespace SindRelatorios.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SindRelatorios.Models.Instructor", b =>
+            modelBuilder.Entity("SindRelatorios.Models.Entities.Instructor", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -37,6 +36,124 @@ namespace SindRelatorios.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Instructors");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.InstructorRestriction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InstructorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstructorId");
+
+                    b.ToTable("InstructorRestrictions");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.OpeningCalendar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsExtra")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Region")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OpeningCalendars");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.OpeningSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InstructorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsExtra")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Observation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OpeningCalendarId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Shift")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstructorId");
+
+                    b.HasIndex("OpeningCalendarId");
+
+                    b.ToTable("OpeningSlots");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.InstructorRestriction", b =>
+                {
+                    b.HasOne("SindRelatorios.Models.Entities.Instructor", "Instructor")
+                        .WithMany()
+                        .HasForeignKey("InstructorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instructor");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.OpeningSlot", b =>
+                {
+                    b.HasOne("SindRelatorios.Models.Entities.Instructor", "Instructor")
+                        .WithMany()
+                        .HasForeignKey("InstructorId");
+
+                    b.HasOne("SindRelatorios.Models.Entities.OpeningCalendar", "OpeningCalendar")
+                        .WithMany("Slots")
+                        .HasForeignKey("OpeningCalendarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instructor");
+
+                    b.Navigation("OpeningCalendar");
+                });
+
+            modelBuilder.Entity("SindRelatorios.Models.Entities.OpeningCalendar", b =>
+                {
+                    b.Navigation("Slots");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,3 +13,4 @@ public class ScheduleRow
    
     public int Hours { get; set; } // CargaHoraria
 }
+

@@ -1,10 +1,66 @@
 ﻿@page "/"
 
-<PageTitle>Início - Gerador de Relatórios</PageTitle>
+<PageTitle>Dashboard - SindRelatorios</PageTitle>
 
-<h1>Bem-vindo ao Gerador de Relatórios</h1>
+<div class="row g-4">
+    <!-- Hero Section -->
+    <div class="col-12">
+        <div class="card border-0 bg-primary text-white shadow rounded-4 overflow-hidden position-relative">
+            <div class="card-body p-5">
+                <h1 class="display-6 fw-bold">Olá, Administrador!</h1>
+                <p class="lead opacity-75">Bem-vindo ao painel de controle do SindRelatórios.</p>
+                <a href="gerador" class="btn btn-light text-primary fw-bold mt-2">
+                    <i class="bi bi-plus-circle me-2"></i>Novo Relatório
+                </a>
+            </div>
+            <!-- Efeito visual de fundo (Ícone gigante) -->
+            <i class="bi bi-activity position-absolute text-white opacity-25" 
+               style="font-size: 10rem; right: -20px; bottom: -40px;"></i>
+        </div>
+    </div>
 
-<p>
-    Use o menu <strong>Gerador Relatório</strong> na barra lateral
-    para começar a criar um novo relatório de aulas.
-</p>
+    <!-- Cards de Acesso Rápido -->
+    <div class="col-md-6">
+        <a href="gerador" class="text-decoration-none">
+            <div class="card border-0 shadow-sm h-100 hover-scale">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                        <i class="bi bi-file-earmark-excel-fill text-success fs-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title text-dark fw-bold mb-1">Gerador de Relatórios</h5>
+                        <p class="card-text text-muted small">Crie grades de horários e exporte para Excel automaticamente.</p>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="instructors" class="text-decoration-none">
+            <div class="card border-0 shadow-sm h-100 hover-scale">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3 me-3">
+                        <i class="bi bi-person-badge-fill text-info fs-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title text-dark fw-bold mb-1">Gerenciar Instrutores</h5>
+                        <p class="card-text text-muted small">Cadastre, edite ou remova instrutores da base de dados.</p>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- CSS Local para efeito de hover apenas nesta página (ou mova para app.css) -->
+<style>
+    .hover-scale {
+        transition: transform 0.2s ease-in-out;
+    }
+    .hover-scale:hover {
+        transform: translateY(-5px);
+    }
+</style>

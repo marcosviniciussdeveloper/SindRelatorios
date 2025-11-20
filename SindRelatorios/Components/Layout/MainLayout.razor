@@ -1,17 +1,78 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="d-flex" style="height: 100vh; overflow: hidden;">
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">Sobre</a>
+    <!-- 1. SIDEBAR -->
+    <div class="d-flex flex-column bg-dark text-white border-end"
+         style="width: @(_collapsed ? "80px" : "260px");
+                min-width: @(_collapsed ? "80px" : "260px");
+                height: 100vh;
+                transition: all 0.3s ease;">
+
+        <!-- HEADER DA SIDEBAR (Logo + Botão) -->
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary"
+             style="height: 70px;">
+
+            <!-- Logo e Texto (Só aparece se aberto) -->
+            @if (!_collapsed)
+            {
+                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                    <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-grid-1x2-fill text-white"></i>
+                    </div>
+                    <span class="fw-bold fs-5 text-nowrap">SindRelat.</span>
+                </div>
+            }
+
+            <!-- Botão Toggle (Sempre visível, muda o ícone) -->
+            <button class="btn btn-link text-white p-0 text-decoration-none @(_collapsed ? "w-100 text-center" : "")"
+                    @onclick="ToggleSidebar"
+                    title="Alternar Menu">
+                <i class="bi @(_collapsed ? "bi-list fs-3" : "bi-list fs-4")"></i>
+            </button>
         </div>
 
-        <article class="content px-4">
+        <!-- MENU -->
+        <div class="flex-grow-1 overflow-hidden py-2">
+            <NavMenu Collapsed="_collapsed" />
+        </div>
+
+        <!-- FOOTER -->
+        <div class="p-3 border-top border-secondary text-center text-muted small">
+            @if (!_collapsed)
+            {
+                <span>v1.0.0</span>
+            }
+        </div>
+    </div>
+
+    <!-- 2. CONTEÚDO PRINCIPAL -->
+    <div class="d-flex flex-column flex-grow-1 bg-light" style="overflow-y: auto;">
+
+        <!-- Topbar Simplificada (Sem botão de menu) -->
+        <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3 sticky-top justify-content-between">
+            <span class="navbar-text fw-bold text-secondary">
+                Painel Administrativo
+            </span>
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                    <i class="bi bi-person-fill"></i> Admin
+                </span>
+            </div>
+        </nav>
+
+        <div class="p-4">
             @Body
-        </article>
-    </main>
+        </div>
+    </div>
 </div>
+
+@code {
+    private bool _collapsed = false;
+
+    private void ToggleSidebar()
+    {
+        _collapsed = !_collapsed;
+    }
+}

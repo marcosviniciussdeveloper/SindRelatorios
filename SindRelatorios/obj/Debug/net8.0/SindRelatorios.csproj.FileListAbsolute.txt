@@ -210,10 +210,7 @@ C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\rjimswa.dswa.cache.json
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
-C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\scopedcss\Components\Layout\MainLayout.razor.rz.scp.css
-C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\scopedcss\Components\Layout\NavMenu.razor.rz.scp.css
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\scopedcss\bundle\SindRelatorios.styles.css
-C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\scopedcss\projectbundle\SindRelatorios.bundle.scp.css
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\staticwebassets.development.json

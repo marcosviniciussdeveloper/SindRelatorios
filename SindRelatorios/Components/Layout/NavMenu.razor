@@ -1,41 +1,74 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">SindRelatorios</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+<div class="d-flex flex-column gap-1 px-2">
+    
+    <!-- Dashboard -->
+    <NavLink class="@GetLinkClasses()" href="" Match="NavLinkMatch.All">
+        <div class="@GetIconContainerClasses()">
+            <i class="bi bi-speedometer2 fs-5"></i>
+        </div>
+        @if (!Collapsed)
+        {
+            <span class="text-nowrap fade-in">Dashboard</span>
+        }
+    </NavLink>
+
+    <!-- Gerador -->
+    <NavLink class="@GetLinkClasses()" href="gerador">
+        <div class="@GetIconContainerClasses()">
+            <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
+        </div>
+        @if (!Collapsed)
+        {
+            <span class="text-nowrap fade-in">Gerador</span>
+        }
+    </NavLink>
+
+    <!-- Instrutores -->
+    <NavLink class="@GetLinkClasses()" href="instructors">
+        <div class="@GetIconContainerClasses()">
+            <i class="bi bi-people fs-5"></i>
+        </div>
+        @if (!Collapsed)
+        {
+            <span class="text-nowrap fade-in">Instrutores</span>
+        }
+    </NavLink>
+
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="gerador">
-                <span class="bi bi-file-earmark-spreadsheet-fill" aria-hidden="true"></span> Gerador Relatório
-            </NavLink>
-        </div>
+<style>
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="instructors">
-                <span class="bi bi-people-fill" aria-hidden="true"></span> Instrutores
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    .nav-link.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+    
+    .nav-link:hover:not(.active) {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+</style>
 
 @code {
-    private bool collapseNavMenu = true;
+    [Parameter]
+    public bool Collapsed { get; set; }
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    private string GetLinkClasses()
     {
-        collapseNavMenu = !collapseNavMenu;
+        return $"nav-link text-white opacity-75 rounded-3 d-flex align-items-center py-3 {(Collapsed ? "justify-content-center" : "px-3 gap-3")}";
+    }
+
+    private string GetIconContainerClasses()
+    {
+        return "d-flex align-items-center justify-content-center";
     }
 }

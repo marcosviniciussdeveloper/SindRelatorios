@@ -9,9 +9,12 @@ public partial class Instructor
     [Inject]
     private IRepository<InstructorEntity> InstructorRepository { get; set; } = default!;
 
-    private List<InstructorEntity>? instructors;
-    private InstructorEntity newInstructor = new();
-    private string? errorMessage;
+    [SupplyParameterFromForm]
+    public InstructorEntity NewInstructor { get; set; } = new();
+
+    private List<InstructorEntity>? _instructorsList;
+    private string? _errorMessage;
+    private string? _successMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -22,53 +25,78 @@ public partial class Instructor
     {
         try
         {
-            var list = await InstructorRepository.GetAllAsync();
-            instructors = list.OrderBy(i => i.Name).ToList();
+            var data = await InstructorRepository.GetAllAsync();
+            _instructorsList = data.OrderBy(i => i.Name).ToList();
         }
-        catch (Exception ex)
+        catch
         {
-            errorMessage = "Erro ao carregar instrutores.";
-            Console.WriteLine(ex);
+            _errorMessage = "Erro ao carregar lista de instrutores.";
         }
     }
 
     private async Task HandleAddInstructor()
     {
-        errorMessage = null;
+        _errorMessage = null;
+        _successMessage = null;
 
-        if (string.IsNullOrWhiteSpace(newInstructor.Name))
+        if (string.IsNullOrWhiteSpace(NewInstructor.Name))
         {
-            errorMessage = "O nome do instrutor é obrigatório.";
+            _errorMessage = "O nome do instrutor é obrigatório.";
+            return;
+        }
+
+        var finalName = NewInstructor.Name.Trim().ToUpper();
+
+        if (_instructorsList != null && _instructorsList.Any(x => x.Name == finalName))
+        {
+            _errorMessage = $"O instrutor '{finalName}' já está cadastrado.";
             return;
         }
 
         try
         {
-            await InstructorRepository.AddAsync(newInstructor);
+            NewInstructor.Name = finalName;
+            await InstructorRepository.AddAsync(NewInstructor);
 
-            newInstructor = new InstructorEntity();
+            _successMessage = "Instrutor cadastrado com sucesso!";
+            NewInstructor = new InstructorEntity();
             await LoadInstructors();
         }
-        catch (Exception ex)
+        catch
         {
-            errorMessage = "Erro ao salvar instrutor.";
-            Console.WriteLine(ex);
+            _errorMessage = "Erro ao salvar instrutor no banco de dados.";
         }
     }
 
     private async Task HandleDelete(Guid id)
     {
-        errorMessage = null;
+        _errorMessage = null;
+        _successMessage = null;
 
         try
         {
-            await InstructorRepository.DeleteAsync(id);
-            await LoadInstructors();
+            var success = await InstructorRepository.DeleteAsync(id);
+
+            if (success)
+            {
+                var itemToRemove = _instructorsList?.FirstOrDefault(x => x.Id == id);
+                if (itemToRemove != null)
+                {
+                    _instructorsList?.Remove(itemToRemove);
+                }
+                _successMessage = "Instrutor removido.";
+            }
+            else
+            {
+                _errorMessage = "Instrutor não encontrado.";
+                await LoadInstructors();
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            errorMessage = "Erro ao excluir instrutor.";
-            Console.WriteLine(ex);
+            _errorMessage = "Não é possível excluir este instrutor pois ele possui registros vinculados.";
         }
+        
+        StateHasChanged();
     }
 }

@@ -1,140 +1,316 @@
 ﻿@page "/gerador"
+@using Microsoft.AspNetCore.Components.Forms
+@using SindRelatorios.Application.Interfaces
+@using SindRelatorios.Application.DTOs
+@using SindRelatorios.Models.Entities
+@using System.Globalization
 
-@using SindRelatorios.Models
-@using SindRelatorios.Application
+@using InstructorEntity = SindRelatorios.Models.Entities.Instructor
+
+@inject IRepository<InstructorEntity> InstructorRepository
+@inject IScheduleService ScheduleService
+@inject IExcelExportService ExcelExportService
+@inject IJSRuntime JS
 
 <PageTitle>Gerador de Relatórios</PageTitle>
 
-<div class="container-fluid">
+<div class="container-fluid p-0">
 
-    <div class="modern-card">
-        <div class="card-header-custom">
-            <h3><i class="bi bi-file-earmark-text-fill me-2"></i>Gerador de Relatórios</h3>
-            <p>Preencha os dados abaixo para calcular o cronograma automaticamente.</p>
+    <!-- Header (Escondido na impressão) -->
+    <div class="d-flex align-items-center mb-4 no-print">
+        <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary">
+            <i class="bi bi-pencil-square fs-4"></i>
         </div>
+        <div>
+            <h3 class="fw-bold text-secondary m-0">Gerador & Editor</h3>
+            <small class="text-muted">Gere, edite substituições e exporte o cronograma.</small>
+        </div>
+    </div>
 
-        <EditForm Model="input" OnValidSubmit="HandleGenerateSchedule" FormName="GeradorForm">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+    <!-- Formulário (Escondido na impressão) -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body p-4">
+            <EditForm Model="InputData" OnValidSubmit="HandleGenerate" FormName="GeneratorForm">
+                <DataAnnotationsValidator />
 
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Data de Início</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                        <InputDate @bind-Value="input.StartDate" class="form-control" />
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-secondary small">DATA INÍCIO</label>
+                        <InputDate @bind-Value="InputData.StartDate" class="form-control" />
                     </div>
-                </div>
 
-                <div class="col-md-8">
-                    <label class="form-label fw-bold">Instrutor Responsável</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                        <InputSelect @bind-Value="input.DefaultInstructor" class="form-select">
-                            <option value="">Selecione um instrutor...</option>
-                            @foreach (var instr in availableInstructors)
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-secondary small">INSTRUTOR PADRÃO</label>
+                        <InputSelect @bind-Value="InputData.InstructorName" class="form-select">
+                            <option value="">Selecione...</option>
+                            @foreach (var instr in InstructorsList)
                             {
                                 <option value="@instr.Name">@instr.Name</option>
                             }
                         </InputSelect>
+                        <ValidationMessage For="() => InputData.InstructorName" class="text-danger small" />
                     </div>
-                </div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Tipo de Curso</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-book"></i></span>
-                        <InputSelect @bind-Value="input.Type" class="form-select" @onchange="OnCourseTypeChange">
-                            <option value="@CourseType.FirstLicense">Primeira Habilitação</option>
-                            <option value="@CourseType.Recycling">Reciclagem</option>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold text-secondary small">CURSO</label>
+                        <InputSelect @bind-Value="InputData.CourseType" class="form-select">
+                            <option value="FirstLicense">Primeira Habilitação (45h)</option>
+                            <option value="Recycling">Reciclagem (30h)</option>
                         </InputSelect>
                     </div>
-                </div>
 
-                @if (input.Type == CourseType.FirstLicense)
-                {
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Turnos da Turma</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                            <InputSelect @bind-Value="input.SelectedShift" class="form-select">
-                                <option value="NOITE,5">Noite (5h)</option>
-                                <option value="TARDE/NOITE,10">Tarde/Noite (10h)</option>
-                                <option value="MANHA/TARDE/NOITE,15">Manhã/Tarde/Noite (15h)</option>
-                            </InputSelect>
-                        </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small">TURNO PADRÃO</label>
+                        <InputSelect @bind-Value="InputData.SelectedShift" class="form-select">
+                            <option value="MANHA">Manhã</option>
+                            <option value="TARDE">Tarde</option>
+                            <option value="NOITE">Noite</option>
+                            <option value="MANHA_TARDE">Manhã/Tarde</option>
+                            <option value="MANHA_NOITE">Manhã/Noite</option>
+                            <option value="TARDE_NOITE">Tarde/Noite</option>
+                            <option value="MANHA_TARDE_NOITE">Manhã/Tarde/Noite</option>
+                        </InputSelect>
                     </div>
-                }
-            </div>
 
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn btn-primary-custom" disabled="@isLoading">
-                    @if (isLoading)
-                    {
-                        <span><span class="spinner-border spinner-border-sm me-2"></span>Gerando...</span>
-                    }
-                    else
-                    {
-                        <span><i class="bi bi-magic me-2"></i>Gerar Prévia</span>
-                    }
-                </button>
-            </div>
-        </EditForm>
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm py-2">
+                            <i class="bi bi-magic me-2"></i> Gerar Prévia Inicial
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
     </div>
 
-
-    @if (generatedClasses != null && generatedClasses.Any())
+    <!-- Tabela de Resultados -->
+    @if (ScheduleResult != null && ScheduleResult.Any())
     {
-        <div class="modern-card mt-4 animate__animated animate__fadeInUp">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="text-primary mb-0">Prévia do Relatório</h4>
-                <span class="badge bg-info text-dark">@generatedClasses.Count aulas geradas</span>
-            </div>
+        <div class="card border-0 shadow-sm fade-in" id="printable-area">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
 
+                <!-- Título e Totalizador Automático -->
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="m-0 fw-bold text-secondary">Cronograma</h5>
+                    <!-- O SUM recaiula automaticamente quando apagamos uma linha -->
+                    <span class="badge bg-success fs-6">
+                        <i class="bi bi-clock-history me-1"></i> Total: @ScheduleResult.Sum(x => x.Hours) horas
+                    </span>
+                </div>
+
+                <!-- Botões de Ação (Escondidos na impressão) -->
+                <div class="d-flex gap-2 no-print">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer-fill me-1"></i> Imprimir
+                    </button>
+                    <button class="btn btn-success btn-sm" @onclick="HandleExportExcel">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                </div>
+
+            </div>
             <div class="table-responsive">
-                <table class="table table-modern table-hover">
-                    <thead>
+                <table class="table table-hover table-bordered align-middle mb-0">
+                    <thead class="bg-light text-secondary small">
                         <tr>
-                            <th style="width: 15%">Data</th>
-                            <th style="width: 15%">Turno</th>
-                            <th style="width: 35%">Disciplina</th>
-                            <th style="width: 25%">Instrutor</th>
-                            <th style="width: 10%">C.H.</th>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th style="width: 140px;">DATA</th>
+                            <th>DIA DA SEMANA</th>
+                            <th style="width: 120px;">TURNO</th>
+                            <th>MATÉRIA</th>
+                            <th>INSTRUTOR</th>
+                            <th style="width: 100px;" class="text-center no-print">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var aula in generatedClasses)
+                        @{
+                            int index = 1;
+                        }
+                        @foreach (var row in ScheduleResult)
                         {
-                            <tr>
-                                <td><InputDate @bind-Value="aula.Date" class="form-control form-control-sm" /></td>
-                                <td><InputText @bind-Value="aula.Shift" class="form-control form-control-sm" /></td>
-                                <td class="text-muted">@aula.Subject</td>
-                                <td>
-                                    <InputSelect @bind-Value="aula.Instructor" class="form-select form-select-sm">
-                                        @foreach (var instr in availableInstructors)
-                                        {
-                                            <option value="@instr.Name">@instr.Name</option>
-                                        }
-                                    </InputSelect>
+                            // Lógica de Linha Zebrada/Editável
+                            bool isEditing = (_editingRow == row);
+
+                            <tr class="@(isEditing ? "table-warning" : "")">
+                                <td class="text-center fw-bold text-muted">
+                                    @(index++)
                                 </td>
-                                <td><InputNumber @bind-Value="aula.Hours" class="form-control form-control-sm" /></td>
+
+                                @if (isEditing)
+                                {
+                                    // --- MODO EDIÇÃO ---
+                                    <td colspan="5">
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <input type="date" class="form-control form-control-sm" @bind="row.Date" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control form-control-sm" @bind="row.Shift" placeholder="Turno" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <select class="form-select form-select-sm" @bind="row.Instructor">
+                                                    @foreach (var instr in InstructorsList)
+                                                    {
+                                                        <option value="@instr.Name">@instr.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-md-12 mt-1">
+                                                <input type="text" class="form-control form-control-sm" @bind="row.Subject" placeholder="Matéria" />
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center no-print">
+                                        <button class="btn btn-success btn-sm" @onclick="() => SaveEdit()" title="Salvar">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    // --- MODO LEITURA ---
+                                    <td class="fw-bold text-primary">@row.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-uppercase small">@row.Date.ToString("dddd", new CultureInfo("pt-BR"))</td>
+                                    <td><span class="badge bg-light text-dark border">@row.Shift</span></td>
+                                    <td>@row.Subject</td>
+                                    <td>@row.Instructor</td>
+
+                                    <td class="text-center no-print">
+                                        <div class="btn-group">
+                                            <button class="btn btn-outline-primary btn-sm border-0" @onclick="() => EnableEdit(row)" title="Editar Substituto/Data">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm border-0" @onclick="() => DeleteRow(row)" title="Excluir Aula">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
-                    <tfoot>
-                        <tr class="table-light fw-bold">
-                            <td colspan="4" class="text-end">TOTAL GERAL:</td>
-                            <td class="text-primary fs-5">@generatedClasses.Sum(a => a.Hours) h</td>
-                        </tr>
-                    </tfoot>
                 </table>
-            </div>
-
-            <div class="d-flex justify-content-end mt-3">
-                <button class="btn btn-success btn-lg shadow" @onclick="ExportToExcel">
-                    <i class="bi bi-file-earmark-excel-fill me-2"></i> Exportar para Excel
-                </button>
             </div>
         </div>
     }
 </div>
+
+<style>
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* IMPRESSÃO */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #printable-area, #printable-area * {
+            visibility: visible;
+        }
+        /* Esconde coluna de ações e cabeçalho dela */
+        .no-print, .no-print * {
+            display: none !important;
+            width: 0 !important;
+        }
+
+        th.no-print, td.no-print {
+            display: none !important;
+            border: none !important;
+        }
+
+        #printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+
+        .card {
+            border: none !important;
+        }
+        /* Ajuste para tabela caber na folha */
+        table {
+            width: 100% !important;
+            font-size: 12px;
+        }
+
+        body, html {
+            background: white;
+            height: auto;
+        }
+    }
+</style>
+
+@code {
+    [SupplyParameterFromForm]
+    public GeneratorInput InputData { get; set; } = new();
+
+    private List<InstructorEntity> InstructorsList { get; set; } = new();
+
+    // Lista que será manipulada
+    private List<ScheduleRow>? ScheduleResult { get; set; }
+
+    // Controle de Edição
+    private ScheduleRow? _editingRow = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        InstructorsList = (await InstructorRepository.GetAllAsync()).OrderBy(x => x.Name).ToList();
+    }
+
+    private async Task HandleGenerate()
+    {
+        // Gera a lista inicial via serviço
+        ScheduleResult = await ScheduleService.GeneratePreviewAsync(InputData);
+        _editingRow = null; // Reseta edição
+    }
+
+    // --- FUNCIONALIDADES DE EDIÇÃO ---
+
+    private void EnableEdit(ScheduleRow row)
+    {
+        // Ativa o modo de edição para esta linha específica
+        _editingRow = row;
+    }
+
+    private void SaveEdit()
+    {
+        // Apenas sai do modo de edição (o @bind já atualizou o objeto na memória)
+        _editingRow = null;
+    }
+
+    private void DeleteRow(ScheduleRow row)
+    {
+        if (ScheduleResult != null)
+        {
+            ScheduleResult.Remove(row);
+            // O Blazor detecta a mudança na lista e recalcula o Total de Horas automaticamente no HTML
+        }
+    }
+
+    private async Task HandleExportExcel()
+    {
+        if (ScheduleResult == null || !ScheduleResult.Any()) return;
+
+        var excelBytes = ExcelExportService.ExportReport(ScheduleResult);
+        var fileName = $"Cronograma_{InputData.InstructorName}_{DateTime.Now:ddMMyy}.xlsx";
+
+        using var stream = new MemoryStream(excelBytes);
+        using var streamRef = new DotNetStreamReference(stream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", streamRef);
+    }
+}

@@ -1,0 +1,128 @@
+:root {
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 70px;
+    --sidebar-bg: #1e293b; /* Slate Dark */
+    --sidebar-color: #f8fafc;
+    --primary-color: #3b82f6;
+    --hover-bg: #334155;
+    --transition-speed: 0.3s;
+}
+
+body {
+    background-color: #f1f5f9; /* Fundo cinza bem claro para a página */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- LAYOUT GRID --- */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-color);
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition-speed) ease;
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+/* Logo Area */
+.sidebar-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+}
+
+.brand-text {
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+    opacity: 1;
+    transition: opacity 0.2s;
+}
+
+.sidebar.collapsed .brand-text {
+    opacity: 0;
+    width: 0;
+    display: none;
+}
+
+/* Navigation Links */
+.nav-item {
+    padding: 0.5rem 1rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    color: #cbd5e1;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    background-color: var(--hover-bg);
+    color: white;
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.nav-link i {
+    font-size: 1.2rem;
+    min-width: 24px; /* Garante alinhamento quando colapsado */
+    display: flex;
+    justify-content: center;
+}
+
+.nav-link span {
+    margin-left: 1rem;
+}
+
+.sidebar.collapsed .nav-link span {
+    display: none;
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 2rem;
+    transition: margin-left var(--transition-speed) ease;
+    width: 100%;
+}
+
+.main-content.expanded {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* --- TOGGLE BUTTON --- */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-right: auto; /* Empurra para esquerda se precisar */
+}

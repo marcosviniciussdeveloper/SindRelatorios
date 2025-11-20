@@ -3,7 +3,8 @@ name: Deploy para Fly.io
 on:
   push:
     branches:
-      - main   
+      - main
+  workflow_dispatch: # Permite rodar clicando num botão
 
 jobs:
   deploy:
@@ -11,16 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Baixa o código do repositório
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # 2. Instala a ferramenta do Fly.io no servidor do GitHub
       - name: Instalar Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-        # 3. Faz o deploy da aplicação para o Fly.io
       - name: Deploy no Fly
+        working-directory: ./SindRelatorios
         run: flyctl deploy --local-only --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

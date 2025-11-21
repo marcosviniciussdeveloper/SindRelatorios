@@ -46,7 +46,7 @@
         <div class="row g-4">
             
             <!-- ================================================== -->
-            <!-- COLUNA ESQUERDA: PRIMEIRA HABILITAÇÃO (COMPLEXO)   -->
+            <!-- COLUNA ESQUERDA: PRIMEIRA HABILITAÇÃO (STANDARD)   -->
             <!-- ================================================== -->
             <div class="col-lg-8">
                 <h6 class="text-secondary fw-bold mb-3 ps-2 border-start border-4 border-primary">
@@ -56,8 +56,6 @@
                 <div class="row g-4">
                     @foreach (var item in Openings.Where(x => x.Type == OpeningType.Standard))
                     {
-                        // Lógica de separação Regular vs Extra
-                        var regularSlots = item.Slots.Where(x => !x.IsExtra).ToList();
                         var extraSlots = item.Slots.Where(x => x.IsExtra).ToList();
                         var isSalvador = item.Region == RegionType.Salvador;
 
@@ -74,57 +72,69 @@
                                     </span>
                                 </div>
 
-                                <div class="card-body p-0">
-                                    <!-- GRADE NORMAL (RESTAURADA AQUI) -->
-                                    @if (regularSlots.Any())
+                                <div class="card-body p-0 bg-light">
+                                    
+                                    <!-- LÓGICA DE SEPARAÇÃO POR TURNOS -->
+                                    @foreach (var shiftCode in new[] { "MANHA", "TARDE", "NOITE" })
                                     {
-                                        <table class="table table-sm align-middle mb-0 table-borderless border-bottom">
-                                            <thead class="text-muted small border-bottom bg-light">
-                                                <tr>
-                                                    <th class="ps-3">INSTRUTOR</th>
-                                                    <th class="text-center">TURNO</th>
-                                                    <th class="text-end pe-3">STATUS</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach(var slot in regularSlots)
-                                                {
-                                                    <tr>
-                                                        <td class="ps-3 fw-bold text-secondary text-truncate" style="max-width: 250px;">
-                                                            @slot.Instructor?.Name
-                                                        </td>
-                                                        <td class="text-center small text-uppercase">@slot.Shift</td>
-                                                        <td class="text-end pe-3">
-                                                            @if(slot.Status == SlotStatus.Aberto)
-                                                            {
-                                                                <i class="bi bi-check-circle-fill text-success" title="Aberto"></i>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge bg-light text-secondary border fw-normal">@slot.Status</span>
-                                                            }
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    }
-                                    else
-                                    {
-                                        <div class="p-3 text-center text-muted small bg-light">Sem grade regular definida.</div>
+                                        var slotsDoTurno = item.Slots
+                                            .Where(x => !x.IsExtra && x.Shift == shiftCode)
+                                            .ToList();
+
+                                        if (slotsDoTurno.Any())
+                                        {
+                                            // Cores dos Blocos
+                                            string bgClass = shiftCode switch { "MANHA" => "bg-warning", "TARDE" => "bg-info text-white", "NOITE" => "bg-dark text-white", _ => "bg-secondary" };
+                                            string title = shiftCode switch { "MANHA" => "MANHÃ", "TARDE" => "TARDE", "NOITE" => "NOITE", _ => shiftCode };
+                                            string icon = shiftCode switch { "MANHA" => "bi-brightness-high-fill", "TARDE" => "bi-sun-fill", "NOITE" => "bi-moon-stars-fill", _ => "" };
+
+                                            <!-- Barra de Título do Turno -->
+                                            <div class="@bgClass px-3 py-1 small fw-bold d-flex align-items-center gap-2 border-top border-bottom">
+                                                <i class="bi @icon"></i> @title
+                                            </div>
+
+                                            <!-- MUDANÇA AQUI: table-bordered e bg-white -->
+                                            <table class="table table-sm table-bordered bg-white align-middle mb-0">
+                                                <tbody>
+                                                    @foreach(var slot in slotsDoTurno)
+                                                    {
+                                                        <tr>
+                                                            <td class="ps-3 fw-bold text-secondary text-truncate" style="width: 85%;">
+                                                                @slot.Instructor?.Name
+                                                            </td>
+                                                            <td class="text-center pe-3" style="width: 15%;">
+                                                                @if(slot.Status == SlotStatus.Aberto)
+                                                                {
+                                                                    <i class="bi bi-check-circle-fill text-success fs-5" title="Aberto"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge bg-light text-secondary border fw-normal">@slot.Status</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
                                     }
 
-                                    <!-- EXTRAS (RODAPÉ VERMELHO) -->
+                                    @if (!item.Slots.Any(x => !x.IsExtra))
+                                    {
+                                        <div class="p-4 text-center text-muted small">Sem grade regular definida.</div>
+                                    }
+
+                                    <!-- EXTRAS -->
                                     @if (extraSlots.Any())
                                     {
-                                        <div class="p-2 bg-light border-top">
-                                            <div class="text-danger fw-bold x-small mb-2 px-1">
+                                        <div class="p-2 bg-white border-top mt-2">
+                                            <div class="text-danger fw-bold x-small mb-2 px-1 border-bottom border-danger border-opacity-25 pb-1">
                                                 <i class="bi bi-lightning-fill"></i> EXTRAS / RESERVA
                                             </div>
                                             <div class="d-flex flex-column gap-1">
                                                 @foreach (var extra in extraSlots)
                                                 {
-                                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded border-start border-3 border-danger shadow-sm">
+                                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded border border-danger border-opacity-25 shadow-sm">
                                                         <span class="text-dark fw-bold small text-truncate ps-1" style="max-width: 200px;">
                                                             @extra.Instructor?.Name
                                                         </span>
@@ -170,7 +180,7 @@
             </div>
 
             <!-- ================================================== -->
-            <!-- COLUNA DIREITA: RECICLAGEM (SIMPLES/COMPACTO)      -->
+            <!-- COLUNA DIREITA: RECICLAGEM (COMPACTO)              -->
             <!-- ================================================== -->
             <div class="col-lg-4">
                 <h6 class="text-secondary fw-bold mb-3 ps-2 border-start border-4 border-success">
@@ -228,5 +238,6 @@
     .x-small { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
     .avatar-xs { width: 24px; height: 24px; font-size: 12px; }
     
-    .table-sm td, .table-sm th { padding: 0.5rem 0.5rem; }
+    .table-sm td, .table-sm th { padding: 0.5rem 0.75rem; }
+    .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; }
 </style>

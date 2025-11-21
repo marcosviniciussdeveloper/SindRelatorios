@@ -18,17 +18,17 @@ public class OpeningService : IOpeningService
         _instructorRepository = instructorRepository;
     }
 
-    public async Task CreateOpeningAsync(CreateOpeningInput input)
+   public async Task CreateOpeningAsync(CreateOpeningInput input)
     {
         if (input.Date == null) throw new ArgumentException("A data é obrigatória.");
 
         var calendar = new OpeningCalendar
         {
-            Date = DateTime.SpecifyKind(input.Date.Value.Date, DateTimeKind.Utc),
+            Date = DateTime.SpecifyKind(input.Date.Value, DateTimeKind.Utc),
             Region = input.Region,
-            Type =  input.Type,
+            Type = input.Type,
             IsExtra = false,
-            Slots = new List<OpeningSlot>() 
+            Slots = new List<OpeningSlot>()
         };
 
         var allInstructors = await _instructorRepository.GetAllAsync();
@@ -38,18 +38,34 @@ public class OpeningService : IOpeningService
             var instructor = allInstructors
                 .FirstOrDefault(i => i.Name.Equals(slotDto.InstructorName, StringComparison.OrdinalIgnoreCase));
 
-            var slot = new OpeningSlot
+     
+            var shifts = SplitShifts(slotDto.Shift);
+
+            foreach (var singleShift in shifts)
             {
-                InstructorId = instructor?.Id, 
-                Shift = slotDto.Shift,
-                Status = SlotStatus.Planejado,
-                Observation = ""
-            };
-            
-            calendar.Slots.Add(slot);
+                calendar.Slots.Add(new OpeningSlot
+                {
+                    InstructorId = instructor?.Id,
+                    Shift = singleShift, // Grava o turno único (ex: só MANHA)
+                    Status = SlotStatus.Planejado,
+                    Observation = ""
+                });
+            }
         }
 
-      
         await _calendarRepository.AddAsync(calendar);
+    }
+
+    private List<string> SplitShifts(string comboShift)
+    {
+        return comboShift switch
+        {
+            "MANHA_TARDE" => new List<string> { "MANHA", "TARDE" },
+            "MANHA_NOITE" => new List<string> { "MANHA", "NOITE" },
+            "TARDE_NOITE" => new List<string> { "TARDE", "NOITE" },
+            "MANHA_TARDE_NOITE" => new List<string> { "MANHA", "TARDE", "NOITE" },
+            "INTEGRAL" => new List<string> { "MANHA", "TARDE", "NOITE" },
+            _ => new List<string> { comboShift } // Se for simples (NOITE), retorna ele mesmo
+        };
     }
 }

@@ -56,16 +56,16 @@ public partial class DetailsScale
         }
     }
 
-    private void AddSlot(bool isExtra)
+    private void AddSlot(bool isExtra, string shift = "NOITE")
     {
         if (Opening == null) return;
         
         Opening.Slots.Add(new OpeningSlot
         {
-            Id = Guid.Empty, // Garante que é novo (Insert)
+            Id = Guid.Empty, 
             OpeningCalendarId = Opening.Id,
             Status = SlotStatus.Planejado,
-            Shift = "NOITE",
+            Shift = shift, 
             IsExtra = isExtra,
             Instructor = null,
             InstructorId = null

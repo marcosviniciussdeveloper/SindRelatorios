@@ -8,6 +8,7 @@
 
 <div class="container-fluid p-0">
     
+    <!-- Cabeçalho -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center">
             <button class="btn btn-outline-secondary me-3 border-0" @onclick='() => Nav.NavigateTo("escalas")'>
@@ -43,81 +44,112 @@
     }
     else
     {
-        <div class="row g-5">
+        <div class="row g-4">
             
-            <!-- 1. GRADE REGULAR -->
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-primary fs-5"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Grade Principal</span>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AddSlot(false)">
-                            <i class="bi bi-plus-lg"></i> Adicionar Vaga
-                        </button>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light small text-secondary text-uppercase">
-                                    <tr>
-                                        <th style="width: 40%">Instrutor</th>
-                                        <th style="width: 30%">Turnos</th>
-                                        <th style="width: 20%">Status</th>
-                                        <th style="width: 10%" class="text-center">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var slot in Opening.Slots.Where(x => !x.IsExtra))
-                                    {
-                                        <tr class="@GetRowClass(slot)">
-                                            <td style="width: 40%">
-                                                <div class="bg-white rounded shadow-sm">
-                                                    <InstructorAutocomplete 
-                                                        AllInstructors="AllInstructors" 
-                                                        Value="@slot.Instructor?.Name"
-                                                        ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <InputSelect @bind-Value="slot.Shift" class="form-select form-select-sm fw-bold text-secondary">
-                                                    <option value="NOITE">Noite</option>
-                                                    <option value="MANHA">Manhã</option>
-                                                    <option value="TARDE">Tarde</option>
-                                                    <option value="MANHA_TARDE">Manhã + Tarde</option>
-                                                    <option value="MANHA_NOITE">Manhã + Noite</option>
-                                                    <option value="TARDE_NOITE">Tarde + Noite</option>
-                                                    <option value="INTEGRAL">Integral</option>
-                                                </InputSelect>
-                                            </td>
-                                            <td>
-                                                <InputSelect @bind-Value="slot.Status" class="form-select form-select-sm w-auto">
-                                                    <option value="Planejado">Planejado</option>
-                                                    <option value="Aberto">✅ ABERTA</option>
-                                                    <option value="Cancelado">❌ Cancelada</option>
-                                                </InputSelect>
-                                            </td>
-                                            <td class="text-center">
-                                                <button class="btn btn-sm btn-link text-danger opacity-50 hover-opacity-100" @onclick="() => RemoveSlot(slot)">
-                                                    <i class="bi bi-trash-fill"></i>
-                                                </button>
-                                            </td>
+            <!-- LOOP PARA CRIAR OS BLOCOS POR TURNO -->
+            @foreach (var shift in new[] { "MANHA", "TARDE", "NOITE" })
+            {
+                // Filtra as vagas deste turno específico
+                var slotsDoTurno = Opening.Slots
+                    .Where(x => !x.IsExtra && x.Shift == shift)
+                    .ToList();
+
+                // Define cores e ícones baseados no turno
+                string headerColor = shift switch {
+                    "MANHA" => "bg-warning text-dark",
+                    "TARDE" => "bg-info text-white",
+                    "NOITE" => "bg-dark text-white",
+                    _ => "bg-secondary"
+                };
+                
+                string icon = shift switch {
+                    "MANHA" => "bi-brightness-high-fill",
+                    "TARDE" => "bi-sun-fill",
+                    "NOITE" => "bi-moon-stars-fill",
+                    _ => "bi-clock"
+                };
+
+                string title = shift switch {
+                    "MANHA" => "Manhã",
+                    "TARDE" => "Tarde",
+                    "NOITE" => "Noite",
+                    _ => shift
+                };
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header @headerColor py-2 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-uppercase ls-1">
+                                <i class="bi @icon me-2"></i>@title
+                            </span>
+                            <!-- Botão já adiciona no turno certo -->
+                            <button class="btn btn-sm btn-light fw-bold text-dark bg-white border-0 opacity-75 hover-opacity-100" 
+                                    @onclick='() => AddSlot(false, shift)'>
+                                <i class="bi bi-plus-circle me-1"></i> Adicionar
+                            </button>
+                        </div>
+                        
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light small text-secondary">
+                                        <tr>
+                                            <th style="width: 50%">INSTRUTOR</th>
+                                            <th style="width: 30%">STATUS</th>
+                                            <th style="width: 10%">AÇÃO</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var slot in slotsDoTurno)
+                                        {
+                                            <tr class="@GetRowClass(slot)">
+                                                <td>
+                                                    <div class="bg-white rounded shadow-sm">
+                                                        <InstructorAutocomplete 
+                                                            AllInstructors="AllInstructors" 
+                                                            Value="@slot.Instructor?.Name"
+                                                            ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <InputSelect @bind-Value="slot.Status" class="form-select form-select-sm w-auto border-0 shadow-none fw-bold">
+                                                        <option value="Planejado">Planejado</option>
+                                                        <option value="Aberto">✅ ABERTA</option>
+                                                        <option value="Cancelado">❌ Cancelada</option>
+                                                    </InputSelect>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-link text-danger opacity-50 hover-opacity-100" @onclick="() => RemoveSlot(slot)">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                        @if (!slotsDoTurno.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted py-4 small fst-italic">
+                                                    Nenhum instrutor escalado para @title.
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
 
-            <!-- 2. GRADE EXTRA (FILA DE ESPERA) -->
-            <div class="col-12">
+            <!-- 2. GRADE EXTRA (MANTIDA NO FINAL) -->
+            <div class="col-12 mt-5">
                 <div class="card border-danger shadow-sm">
                     <div class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-bold fs-5"><i class="bi bi-lightning-fill me-2"></i>Turmas Extras</span>
                             <span class="ms-2 badge bg-white text-danger">Fila de Espera</span>
                         </div>
-                        <button class="btn btn-sm btn-light text-danger fw-bold shadow-sm" @onclick="() => AddSlot(true)">
+                        <button class="btn btn-sm btn-light text-danger fw-bold shadow-sm" @onclick='() => AddSlot(true, "NOITE")'>
                             <i class="bi bi-plus-circle me-1"></i> Incluir Reserva
                         </button>
                     </div>
@@ -136,7 +168,7 @@
                                 <thead>
                                     <tr class="text-danger small text-uppercase bg-danger bg-opacity-10">
                                         <th style="width: 40%" class="ps-4">Instrutor Reserva</th>
-                                        <th style="width: 30%">Turnos Disponíveis</th>
+                                        <th style="width: 30%">Turno Preferencial</th>
                                         <th style="width: 20%">Situação</th>
                                         <th style="width: 10%" class="text-center">Ação</th>
                                     </tr>
@@ -158,8 +190,6 @@
                                                     <option value="NOITE">Noite</option>
                                                     <option value="MANHA">Manhã</option>
                                                     <option value="TARDE">Tarde</option>
-                                                    <option value="MANHA_NOITE">Manhã + Noite</option>
-                                                    <option value="TARDE_NOITE">Tarde + Noite</option>
                                                 </InputSelect>
                                             </td>
                                             <td>
@@ -189,6 +219,7 @@
 
 <style>
     .hover-opacity-100:hover { opacity: 1 !important; }
+    .ls-1 { letter-spacing: 1px; }
     .table-success { background-color: #d1e7dd !important; --bs-table-bg: #d1e7dd !important; }
     .table-warning { background-color: #fff3cd !important; --bs-table-bg: #fff3cd !important; }
     .table-secondary { background-color: #e2e3e5 !important; }

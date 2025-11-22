@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SindRelatorios")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f219dee9548ff5eb63126d079a045e16899506d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c35b25564bc62511996a3c4d4974e1877bddf00")]
 [assembly: System.Reflection.AssemblyProductAttribute("SindRelatorios")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SindRelatorios")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Nav
 
 <div class="d-flex" style="height: 100vh; overflow: hidden;">
 
@@ -10,35 +11,34 @@
                 background-color: #1e293b !important; 
                 transition: all 0.3s ease;">
         
-        <div class="d-flex align-items-center px-4 border-bottom border-secondary border-opacity-25" 
+        <!-- HEADER SIDEBAR -->
+        <div class="d-flex align-items-center px-3 border-bottom border-secondary border-opacity-25" 
              style="height: 70px;">
             
-            <!-- Logo e Texto -->
-            <div class="d-flex align-items-center gap-3 w-100 @(_collapsed ? "justify-content-center" : "")">
-                <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center flex-shrink-0" 
-                     style="width: 36px; height: 36px;">
-                     <i class="bi bi-grid-1x2-fill text-white fs-5"></i>
-                </div>
-                
-                @if (!_collapsed)
-                {
-                    <span class="fw-bold fs-5 text-nowrap tracking-wide">SindRelat.</span>
-                    
-                 
-                    <button class="btn btn-link text-secondary p-0 ms-auto" @onclick="ToggleSidebar">
-                        <i class="bi bi-list fs-4"></i>
-                    </button>
-                }
-            </div>
-            
+            <!-- Lógica do Cabeçalho da Sidebar -->
             @if (_collapsed)
             {
-                
-                <button class="btn btn-link text-secondary p-0 position-absolute" 
-                        style="left: 50%; transform: translateX(-50%); top: 80px;"
-                        @onclick="ToggleSidebar">
-                    <i class="bi bi-arrow-right-circle fs-4"></i>
+                <!-- MODO FECHADO: Apenas o botão Hambúrguer centralizado -->
+                <button class="btn btn-link text-light p-0 w-100 text-center" 
+                        @onclick="ToggleSidebar" title="Expandir Menu">
+                    <i class="bi bi-list fs-3"></i>
                 </button>
+            }
+            else
+            {
+                <!-- MODO ABERTO: Logo + Botão na direita -->
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                             <i class="bi bi-grid-1x2-fill text-white"></i>
+                        </div>
+                        <span class="fw-bold fs-5 text-nowrap tracking-wide">SindRelat.</span>
+                    </div>
+                    
+                    <button class="btn btn-link text-secondary p-0" @onclick="ToggleSidebar">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                </div>
             }
         </div>
 
@@ -49,28 +49,42 @@
 
         <!-- FOOTER -->
         <div class="p-3 border-top border-secondary border-opacity-25 text-center text-muted small">
-            @if (!_collapsed) { <span class="opacity-50">Versão 1.0</span> }
+            @if (!_collapsed) { <span class="opacity-50">v1.0.0</span> }
         </div>
     </div>
 
     <!-- 2. CONTEÚDO PRINCIPAL -->
     <div class="d-flex flex-column flex-grow-1 bg-light" style="overflow-y: auto;">
         
-        <nav class="navbar navbar-light bg-white shadow-sm px-4 sticky-top border-bottom" style="height: 70px; min-height: 70px;">
+        <!-- HEADER SUPERIOR -->
+        <nav class="navbar navbar-light bg-white shadow-sm px-4 sticky-top border-bottom justify-content-between" 
+             style="height: 70px; min-height: 70px;">
+            
+            <!-- Título da Página -->
             <span class="navbar-text fw-bold text-secondary">
                 Painel Administrativo
             </span>
 
+            <!-- ÁREA DO USUÁRIO / ADMIN -->
             <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border">
-                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                <!-- 
+            
+                -->
+                <button class="btn btn-light border rounded-pill px-3 py-1 d-flex align-items-center gap-2 hover-shadow" 
+                        @onclick='() => Nav.NavigateTo("dev-panel")'
+                        title="Acessar Painel do Desenvolvedor">
+                    
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 30px; height: 30px;">
                         <i class="bi bi-person-fill small"></i>
                     </div>
+                    
                     <span class="small fw-bold text-secondary me-1">Admin</span>
-                </div>
+                </button>
             </div>
         </nav>
 
+        <!-- CORPO -->
         <div class="p-4">
             @Body
         </div>
@@ -79,6 +93,9 @@
 
 <style>
     .tracking-wide { letter-spacing: 0.5px; }
+    .hover-shadow:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; border-color: #dee2e6 !important; }
+    
+    /* Scrollbar fina */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }

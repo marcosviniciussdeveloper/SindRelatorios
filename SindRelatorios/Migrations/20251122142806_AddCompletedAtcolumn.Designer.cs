@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SindRelatorios.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SindRelatorios.Infrastructure.Data;
 namespace SindRelatorios.Migrations
 {
     [DbContext(typeof(SindDbContext))]
-    partial class SindDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251122142806_AddCompletedAtcolumn")]
+    partial class AddCompletedAtcolumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,28 +157,6 @@ namespace SindRelatorios.Migrations
                     b.HasIndex("OpeningCalendarId");
 
                     b.ToTable("OpeningSlots");
-                });
-
-            modelBuilder.Entity("SindRelatorios.Models.Entities.UserSuggestion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserSuggestions");
                 });
 
             modelBuilder.Entity("SindRelatorios.Models.Entities.InstructorRestriction", b =>

@@ -18,15 +18,12 @@ public class ScheduleService : IScheduleService
 
     public async Task<List<ScheduleRow>> GeneratePreviewAsync(GeneratorInput input)
     {
-        // 1. Converter DTO (String) para Domínio (Enum/Int)
         CourseType typeEnum = input.CourseType == "Recycling" ? CourseType.Recycling : CourseType.FirstLicense;
         int dailyHours = GetHoursFromShift(input.SelectedShift);
         string shiftDisplayName = FormatShiftName(input.SelectedShift);
 
-        // 2. Obter Template
         var template = _templateProvider.GetTemplate(typeEnum);
 
-        // 3. Carregar Feriados
         var holidays = await _holidayService.GetHolidays(input.StartDate.Year);
         if (input.StartDate.Month > 10)
         {
@@ -45,13 +42,11 @@ public class ScheduleService : IScheduleService
             if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
                 continue;
 
-            // Pula Feriados
             if (template.SkipHolidays && holidays.Contains(currentDate.Date))
                 continue;
 
             int classNumber = scheduleRows.Count + 1;
 
-            // Pega a matéria do template ou define padrão
             string subject = template.SubjectTemplate.ContainsKey(classNumber)
                 ? template.SubjectTemplate[classNumber]
                 : "AULA PRÁTICA / REVISÃO";

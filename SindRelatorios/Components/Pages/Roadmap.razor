@@ -1,0 +1,165 @@
+@page "/roadmap"
+@using SindRelatorios.Models.Entities.Enums
+
+<PageTitle>Novidades e Futuro</PageTitle>
+
+<div class="container-fluid p-0">
+    
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-info bg-opacity-10 p-2 rounded-3 me-3 text-info">
+                <i class="bi bi-rocket-takeoff-fill fs-4"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold text-secondary m-0">Roadmap do Sistema</h3>
+                <small class="text-muted">Acompanhe a evolução e as próximas entregas.</small>
+            </div>
+        </div>
+        
+        <!-- Link discreto para o painel Dev (ícone de terminal) -->
+        <a href="dev-panel" class="btn btn-sm btn-link text-muted text-decoration-none opacity-50 hover-opacity-100">
+            <i class="bi bi-terminal-fill"></i>
+        </a>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Carregando novidades...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            
+            <!-- 1. EM DESENVOLVIMENTO (Amarelo/Azul) -->
+            <div class="col-md-4">
+                <h6 class="fw-bold text-primary mb-3 d-flex align-items-center border-bottom pb-2">
+                    <div class="spinner-grow spinner-grow-sm me-2" role="status"></div>
+                    EM DESENVOLVIMENTO
+                </h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var item in Features.Where(x => x.Status == FeatureStatus.InProgress))
+                    {
+                        <div class="card border-0 shadow-sm border-start border-4 border-primary hover-lift">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark m-0">@item.Title</h6>
+                                <p class="text-muted small mt-1 mb-2">@item.Description</p>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                    Em Construção
+                                </span>
+                            </div>
+                        </div>
+                    }
+                    @if (!Features.Any(x => x.Status == FeatureStatus.InProgress))
+                    {
+                        <div class="alert alert-light border text-center text-muted small py-4">
+                            Nada sendo codificado no momento.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h6 class="fw-bold text-secondary mb-3 d-flex align-items-center border-bottom pb-2">
+                    <i class="bi bi-hourglass-split me-2"></i>FUTURAS ATUALIZAÇÕES
+                </h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var item in Features.Where(x => x.Status == FeatureStatus.Idea))
+                    {
+                        <div class="card border-0 shadow-sm opacity-75">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark m-0">@item.Title</h6>
+                                <p class="text-muted small mb-0 mt-1">@item.Description</p>
+                            </div>
+                        </div>
+                    }
+                    @if (!Features.Any(x => x.Status == FeatureStatus.Idea))
+                    {
+                        <div class="text-center text-muted small py-4 opacity-50">
+                            Lista de ideias vazia.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 3. JÁ ENTREGUE (Verde) -->
+            <div class="col-md-4">
+                <h6 class="fw-bold text-success mb-3 d-flex align-items-center border-bottom pb-2">
+                    <i class="bi bi-check-circle-fill me-2"></i>JÁ ENTREGUE
+                </h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var item in Features.Where(x => x.Status == FeatureStatus.Completed).OrderByDescending(x => x.CompletedAt))
+                    {
+                        <div class="card border-0 shadow-sm bg-light">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark text-decoration-line-through opacity-75 m-0">@item.Title</h6>
+                                <p class="text-muted small mb-0 mt-1">@item.Description</p>
+                                
+                                @if (item.CompletedAt.HasValue)
+                                {
+                                    <small class="text-success fw-bold mt-2 d-block border-top pt-2">
+                                        <i class="bi bi-calendar-check me-1"></i> 
+                                        @item.CompletedAt.Value.ToString("MMM/yyyy")
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    }
+    
+
+    <!-- ÁREA DE SUGESTÃO -->
+    <div class="row mt-5 no-print">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm">
+                
+                @if (SuggestionSent)
+                {
+                    <div class="d-flex align-items-center text-success">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>Obrigado!</strong> Sua sugestão foi enviada para nossa equipe de desenvolvimento.
+                        </div>
+                    </div>
+                }
+                else if (!ShowSuggestionForm)
+                {
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="bi bi-lightbulb-fill me-2 fs-5"></i>
+                            <strong>Tem uma ideia?</strong> Sentiu falta de algo importante?
+                        </div>
+                        <button class="btn btn-sm btn-light text-info fw-bold border" @onclick="() => ShowSuggestionForm = true">
+                            Enviar Sugestão
+                        </button>
+                    </div>
+                }
+                else
+                {
+                 
+                    <div>
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-text me-2"></i>Descreva sua sugestão:</h6>
+                        <textarea class="form-control mb-2" rows="3" 
+                                  @bind="NewSuggestion.Content" 
+                                  placeholder="Ex: Seria legal se pudesse imprimir a escala em PDF..."></textarea>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => ShowSuggestionForm = false">Cancelar</button>
+                            <button class="btn btn-sm btn-primary fw-bold" @onclick="HandleSubmitSuggestion">Enviar Agora</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

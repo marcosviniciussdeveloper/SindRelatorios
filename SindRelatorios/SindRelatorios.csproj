@@ -29,6 +29,7 @@
       <Compile Update="Components\Pages\Instructor.cs">
         <DependentUpon>Instructor.razor</DependentUpon>
       </Compile>
+      <Compile Remove="Components\Pages\Home.cs" />
     </ItemGroup>
 
 </Project>

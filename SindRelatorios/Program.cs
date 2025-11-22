@@ -22,6 +22,7 @@ builder.Services.AddScoped<IHolidayService, HolidayService>();
 builder.Services.AddScoped<ICourseTemplateProvider, CourseTemplateProvider>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IOpeningService, OpeningService>();
+builder.Services.AddScoped<IFeatureService, FeatureService>();
 builder.Services.AddScoped<IOpeningRepository, OpeningRepository>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 

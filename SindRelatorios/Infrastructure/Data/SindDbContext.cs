@@ -9,11 +9,13 @@ public class SindDbContext : DbContext
 
     public DbSet<Instructor> Instructors { get; set; }
     
-    // --- ADICIONE ESTAS LINHAS ---
     public DbSet<OpeningCalendar> OpeningCalendars { get; set; }
     public DbSet<OpeningSlot> OpeningSlots { get; set; }
+    public DbSet<UserSuggestion> UserSuggestions { get; set; }
+
+    public DbSet<AppFeature> AppFeatures { get; set; }
     public DbSet<InstructorRestriction> InstructorRestrictions { get; set; }
-    // -----------------------------
+   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

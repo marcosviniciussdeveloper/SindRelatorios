@@ -20,7 +20,6 @@ public class FeatureService : IFeatureService
     public async Task<List<AppFeature>> GetAllFeaturesAsync()
     {
         var data = await _featureRepo.GetAllAsync();
-        // Regra de ordenação fica aqui no serviço, não na tela
         return data
             .OrderBy(x => x.Status == FeatureStatus.Completed)
             .ThenByDescending(x => x.CreatedAt)
@@ -35,7 +34,6 @@ public class FeatureService : IFeatureService
 
     public async Task SaveFeatureAsync(AppFeature feature)
     {
-        // REGRA DE NEGÓCIO: Se marcou como concluído, define a data automaticamente
         if (feature.Status == FeatureStatus.Completed && feature.CompletedAt == null)
         {
             feature.CompletedAt = DateTime.UtcNow;
@@ -58,7 +56,6 @@ public class FeatureService : IFeatureService
 
     public async Task PromoteSuggestionAsync(UserSuggestion suggestion)
     {
-        // REGRA DE NEGÓCIO: Promover = Criar Feature + Deletar Sugestão
         var newFeature = new AppFeature
         {
             Title = "Sugestão: " + (suggestion.Content.Length > 20 ? suggestion.Content.Substring(0, 20) + "..." : suggestion.Content),

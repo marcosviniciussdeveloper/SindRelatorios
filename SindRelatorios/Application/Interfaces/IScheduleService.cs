@@ -6,7 +6,7 @@ namespace SindRelatorios.Application.Interfaces
 {
     public interface IScheduleService
     {
-        Task<List<ScheduleRow>> GeneratePreviewAsync(GeneratorInput input);
+        Task<ScheduleResult> GeneratePreviewAsync(GeneratorInput input);
 
     }
 }

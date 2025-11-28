@@ -125,7 +125,6 @@ public partial class DetailsScale
                 }
             }
 
-            Opening.Date = DateTime.SpecifyKind(Opening.Date, DateTimeKind.Utc);
 
             await OpeningRepo.UpdateAsync(Opening);
             

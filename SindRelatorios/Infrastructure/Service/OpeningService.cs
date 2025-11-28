@@ -46,7 +46,7 @@ public class OpeningService : IOpeningService
                 calendar.Slots.Add(new OpeningSlot
                 {
                     InstructorId = instructor?.Id,
-                    Shift = singleShift, // Grava o turno único (ex: só MANHA)
+                    Shift = singleShift, 
                     Status = SlotStatus.Planejado,
                     Observation = ""
                 });

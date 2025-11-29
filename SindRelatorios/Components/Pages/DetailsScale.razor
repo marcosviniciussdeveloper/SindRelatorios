@@ -7,32 +7,40 @@
 <PageTitle>Detalhes da Escala</PageTitle>
 
 <div class="container-fluid p-0">
-    
+
     <!-- Cabeçalho -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-outline-secondary me-3 border-0" @onclick='() => Nav.NavigateTo("escalas")'>
-                <i class="bi bi-arrow-left fs-4"></i>
+    <div class="d-flex align-items-center justify-content-between mb-5">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-light border rounded-circle shadow-sm" style="width: 45px; height: 45px;"
+                    @onclick='() => Nav.NavigateTo("escalas")'>
+                <i class="bi bi-arrow-left"></i>
             </button>
             <div>
-                <h3 class="fw-bold text-secondary m-0">
-                    <i class="bi bi-calendar-week me-2"></i>@Opening?.Region
+                <h3 class="fw-bold text-dark m-0 ls-tight">
+                    @Opening?.Region
                 </h3>
-                <div class="text-muted">
-                    Data: <strong>@Opening?.Date.ToString("dd/MM/yyyy")</strong>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar-event me-1"></i> @Opening?.Date.ToString("D")
                 </div>
             </div>
         </div>
-        <button class="btn btn-success shadow-sm fw-bold px-4" @onclick="HandleSave" disabled="@_isSaving">
-            @if (_isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            else { <i class="bi bi-check-lg me-2"></i> }
-            Salvar Tudo
+        <button class="btn btn-success shadow-sm fw-bold px-4 py-2" @onclick="HandleSave" disabled="@_isSaving">
+            @if (_isSaving)
+            {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            else
+            {
+
+                <i class="bi bi-check-circle-fill me-2"></i>
+            }
+            Salvar Alterações
         </button>
     </div>
 
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4">
             <strong>Ops!</strong> @_errorMessage
             <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
         </div>
@@ -45,169 +53,137 @@
     else
     {
         <div class="row g-4">
-            
-            <!-- LOOP PARA CRIAR OS BLOCOS POR TURNO -->
+
+            <!-- LOOP DOS TURNOS -->
             @foreach (var shift in new[] { "MANHA", "TARDE", "NOITE" })
             {
-                // Filtra as vagas deste turno específico
-                var slotsDoTurno = Opening.Slots
-                    .Where(x => !x.IsExtra && x.Shift == shift)
-                    .ToList();
+                var slotsDoTurno = Opening.Slots.Where(x => !x.IsExtra && x.Shift == shift).ToList();
 
-                // Define cores e ícones baseados no turno
-                string headerColor = shift switch {
-                    "MANHA" => "bg-warning text-dark",
-                    "TARDE" => "bg-info text-white",
-                    "NOITE" => "bg-dark text-white",
-                    _ => "bg-secondary"
-                };
-                
-                string icon = shift switch {
-                    "MANHA" => "bi-brightness-high-fill",
-                    "TARDE" => "bi-sun-fill",
-                    "NOITE" => "bi-moon-stars-fill",
-                    _ => "bi-clock"
-                };
-
-                string title = shift switch {
-                    "MANHA" => "Manhã",
-                    "TARDE" => "Tarde",
-                    "NOITE" => "Noite",
-                    _ => shift
+                // Configuração de Cores do Card
+                (string borderClass, string icon, string title, string textClass) config = shift switch
+                {
+                    "MANHA" => ("border-warning", "bi-brightness-alt-high-fill", "Manhã", "text-warning"),
+                    "TARDE" => ("border-info", "bi-sun-fill", "Tarde", "text-info"),
+                    "NOITE" => ("border-dark", "bi-moon-stars-fill", "Noite", "text-dark"),
+                    _ => ("", "", "", "")
                 };
 
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header @headerColor py-2 d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-uppercase ls-1">
-                                <i class="bi @icon me-2"></i>@title
-                            </span>
-                            <!-- Botão já adiciona no turno certo -->
-                            <button class="btn btn-sm btn-light fw-bold text-dark bg-white border-0 opacity-75 hover-opacity-100" 
-                                    @onclick='() => AddSlot(false, shift)'>
-                                <i class="bi bi-plus-circle me-1"></i> Adicionar
-                            </button>
-                        </div>
-                        
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light small text-secondary">
-                                        <tr>
-                                            <th style="width: 50%">INSTRUTOR</th>
-                                            <th style="width: 30%">STATUS</th>
-                                            <th style="width: 10%">AÇÃO</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var slot in slotsDoTurno)
-                                        {
-                                            <tr class="@GetRowClass(slot)">
-                                                <td>
-                                                    <div class="bg-white rounded shadow-sm">
-                                                        <InstructorAutocomplete 
-                                                            AllInstructors="AllInstructors" 
-                                                            Value="@slot.Instructor?.Name"
-                                                            ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <InputSelect @bind-Value="slot.Status" class="form-select form-select-sm w-auto border-0 shadow-none fw-bold">
-                                                        <option value="Planejado">Planejado</option>
-                                                        <option value="Aberto">✅ ABERTA</option>
-                                                        <option value="Cancelado">❌ Cancelada</option>
-                                                    </InputSelect>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button class="btn btn-sm btn-link text-danger opacity-50 hover-opacity-100" @onclick="() => RemoveSlot(slot)">
-                                                        <i class="bi bi-trash-fill"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                        @if (!slotsDoTurno.Any())
-                                        {
-                                            <tr>
-                                                <td colspan="3" class="text-center text-muted py-4 small fst-italic">
-                                                    Nenhum instrutor escalado para @title.
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                        <!-- Barra lateral colorida em vez de header cheio -->
+                        <div class="row g-0 h-100">
+                            <div class="col-auto @config.textClass bg-opacity-10 d-flex flex-column align-items-center justify-content-center p-3 border-end"
+                                 style="width: 100px; background-color: var(--bs-light);">
+                                <i class="bi @config.icon fs-1 mb-2"></i>
+                                <span class="fw-bold text-uppercase small">@config.title</span>
+                            </div>
+
+                            <div class="col">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between">
+                                    <span class="small text-muted fw-bold text-uppercase ls-1">Lista de Instrutores</span>
+                                    <button class="btn btn-sm btn-ghost-primary fw-bold" @onclick='() => AddSlot(false, shift)'>
+                                        <i class="bi bi-plus-lg"></i> Adicionar
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    @if (slotsDoTurno.Any())
+                                    {
+                                        <table class="table table-hover align-middle mb-0 mt-2">
+                                            <tbody>
+                                                @foreach (var slot in slotsDoTurno)
+                                                {
+                                                    <tr>
+                                                        <td class="ps-4" style="width: 60%">
+                                                            <div class="input-clean">
+                                                                <InstructorAutocomplete AllInstructors="AllInstructors"
+                                                                                        Value="@slot.Instructor?.Name"
+                                                                                        ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
+                                                            </div>
+                                                        </td>
+                                                        <td style="width: 30%">
+                                                            <!-- Select com estilo de Badge -->
+                                                            <div class="position-relative">
+                                                                <InputSelect @bind-Value="slot.Status" class="@GetStatusSelectClass(slot.Status)">
+                                                                    <option value="Planejado">⚪ Planejado</option>
+                                                                    <option value="Aberto">🟢 Aberta</option>
+                                                                    <option value="Cancelado">🔴 Cancelada</option>
+                                                                </InputSelect>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-end pe-4">
+                                                            <button class="btn btn-sm btn-icon-danger" @onclick="() => RemoveSlot(slot)">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-4 text-muted opacity-50">
+                                            <i class="bi bi-person-slash fs-4"></i>
+                                            <p class="small m-0">Ninguém escalado.</p>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             }
 
-            <!-- 2. GRADE EXTRA (MANTIDA NO FINAL) -->
-            <div class="col-12 mt-5">
-                <div class="card border-danger shadow-sm">
-                    <div class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="fw-bold fs-5"><i class="bi bi-lightning-fill me-2"></i>Turmas Extras</span>
-                            <span class="ms-2 badge bg-white text-danger">Fila de Espera</span>
-                        </div>
-                        <button class="btn btn-sm btn-light text-danger fw-bold shadow-sm" @onclick='() => AddSlot(true, "NOITE")'>
+            <!-- SEÇÃO EXTRA (Design Diferenciado) -->
+            <div class="col-12 mt-4">
+                <div class="card border border-danger border-opacity-25 shadow-sm" style="background-color: #fff5f5;">
+                    <div class="card-header bg-transparent border-0 pt-3 d-flex justify-content-between align-items-center">
+                        <h6 class="text-danger fw-bold m-0">
+                            <i class="bi bi-lightning-charge-fill me-2"></i>TURMAS EXTRAS / RESERVA
+                        </h6>
+                        <button class="btn btn-sm btn-outline-danger bg-white" @onclick='() => AddSlot(true, "NOITE")'>
                             <i class="bi bi-plus-circle me-1"></i> Incluir Reserva
                         </button>
                     </div>
-                    
-                    <div class="card-body p-0">
+
+                    <div class="card-body pt-0">
                         @if (!Opening.Slots.Any(x => x.IsExtra))
                         {
-                            <div class="p-5 text-center text-muted opacity-75">
-                                <i class="bi bi-cone-striped fs-1 d-block mb-2"></i>
-                                Nenhuma turma extra planejada.
+                            <div class="text-center py-4 text-danger opacity-50 small border border-dashed border-danger rounded bg-white">
+                                Nenhuma reserva técnica acionada.
                             </div>
                         }
                         else
                         {
-                            <table class="table mb-0 align-middle">
-                                <thead>
-                                    <tr class="text-danger small text-uppercase bg-danger bg-opacity-10">
-                                        <th style="width: 40%" class="ps-4">Instrutor Reserva</th>
-                                        <th style="width: 30%">Turno Preferencial</th>
-                                        <th style="width: 20%">Situação</th>
-                                        <th style="width: 10%" class="text-center">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var slot in Opening.Slots.Where(x => x.IsExtra))
-                                    {
-                                        <tr class="@GetRowClass(slot)">
-                                            <td class="ps-4">
-                                                 <div class="bg-white rounded shadow-sm">
-                                                     <InstructorAutocomplete 
-                                                        AllInstructors="AllInstructors" 
-                                                        Value="@slot.Instructor?.Name"
-                                                        ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
-                                                 </div>
-                                            </td>
-                                            <td>
-                                                <InputSelect @bind-Value="slot.Shift" class="form-select form-select-sm border-danger text-danger fw-bold">
-                                                    <option value="NOITE">Noite</option>
-                                                    <option value="MANHA">Manhã</option>
-                                                    <option value="TARDE">Tarde</option>
-                                                </InputSelect>
-                                            </td>
-                                            <td>
-                                                 <InputSelect @bind-Value="slot.Status" class="form-select form-select-sm w-auto shadow-sm">
-                                                    <option value="Planejado">🟡 AGUARDANDO</option>
-                                                    <option value="Aberto">🟢 ABERTA</option>
-                                                    <option value="Cancelado">⚪ CANCELADA</option>
-                                                </InputSelect>
-                                            </td>
-                                            <td class="text-center">
-                                                <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => RemoveSlot(slot)">
-                                                    <i class="bi bi-x-lg"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                            <div class="list-group list-group-flush rounded border shadow-sm">
+                                @foreach (var slot in Opening.Slots.Where(x => x.IsExtra))
+                                {
+                                    <div class="list-group-item d-flex align-items-center p-2 bg-white">
+                                        <div class="flex-grow-1 ps-2">
+                                            <InstructorAutocomplete AllInstructors="AllInstructors"
+                                                                    Value="@slot.Instructor?.Name"
+                                                                    ValueChanged="@((name) => UpdateSlotInstructor(slot, name))" />
+                                        </div>
+                                        <div class="px-2" style="width: 140px;">
+                                            <InputSelect @bind-Value="slot.Shift" class="form-select form-select-sm border-0 bg-light fw-bold text-secondary text-uppercase text-center">
+                                                <option value="NOITE">Noite</option>
+                                                <option value="MANHA">Manhã</option>
+                                                <option value="TARDE">Tarde</option>
+                                            </InputSelect>
+                                        </div>
+                                        <div class="px-2" style="width: 160px;">
+                                            <InputSelect @bind-Value="slot.Status" class="@GetStatusSelectClass(slot.Status)">
+                                                <option value="Planejado">🟡 Aguardando</option>
+                                                <option value="Aberto">🟢 Confirmada</option>
+                                                <option value="Cancelado">⚪ Cancelada</option>
+                                            </InputSelect>
+                                        </div>
+                                        <button class="btn btn-sm text-danger" @onclick="() => RemoveSlot(slot)">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
                         }
                     </div>
                 </div>
@@ -217,10 +193,73 @@
     }
 </div>
 
+@code {
+    // Método helper para estilizar o dropdown baseado no valor
+    private string GetStatusSelectClass(SlotStatus status)
+    {
+        var baseClass = "form-select form-select-sm border-0 fw-bold shadow-none ";
+        return status switch
+        {
+            SlotStatus.Aberto => baseClass + "text-success bg-success bg-opacity-10",
+            SlotStatus.Planejado => baseClass + "text-secondary bg-light",
+            SlotStatus.Cancelado => baseClass + "text-danger bg-danger bg-opacity-10 text-decoration-line-through",
+            _ => baseClass
+        };
+    }
+}
+
 <style>
-    .hover-opacity-100:hover { opacity: 1 !important; }
-    .ls-1 { letter-spacing: 1px; }
-    .table-success { background-color: #d1e7dd !important; --bs-table-bg: #d1e7dd !important; }
-    .table-warning { background-color: #fff3cd !important; --bs-table-bg: #fff3cd !important; }
-    .table-secondary { background-color: #e2e3e5 !important; }
+    .ls-tight {
+        letter-spacing: -0.5px;
+    }
+
+    .ls-1 {
+        letter-spacing: 1px;
+    }
+
+    /* Botão Ghost (Fantasma) */
+    .btn-ghost-primary {
+        color: var(--bs-primary);
+        background: transparent;
+        border: none;
+    }
+
+        .btn-ghost-primary:hover {
+            background: var(--bs-primary-bg-subtle);
+        }
+
+    /* Ícone de Lixeira sutil */
+    .btn-icon-danger {
+        color: #cbd5e1;
+        border: none;
+        transition: 0.2s;
+    }
+
+        .btn-icon-danger:hover {
+            color: #dc3545;
+            background: #fee2e2;
+        }
+
+    /* Remove bordas dos inputs do autocomplete para parecer texto puro na tabela */
+    .input-clean .form-control {
+        border: 1px solid transparent;
+        padding: 0.25rem 0.5rem;
+        background: transparent;
+    }
+
+        .input-clean .form-control:focus {
+            border-color: #86b7fe;
+            background: #fff;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+        }
+    /* Esconde a lupa quando não está focado para limpar o visual */
+    .input-clean .input-group-text {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #94a3b8;
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
 </style>

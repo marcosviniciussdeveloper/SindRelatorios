@@ -109,3 +109,4 @@ C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\SindRelatorios.pdb
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\SindRelatorios.genruntimeconfig.cache
 C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\ref\SindRelatorios.dll
+C:\Users\Sindauto\Desktop\SindRelatorios\SindRelatorios\SindRelatorios\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

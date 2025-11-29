@@ -1,12 +1,11 @@
 ﻿@page "/instructors"
 @using Microsoft.AspNetCore.Components.Forms
-@using SindRelatorios.Models.Entities
 
 <PageTitle>Gerenciar Instrutores</PageTitle>
 
 <div class="container-fluid p-0">
-    
-    <!-- Header -->
+
+    <!-- HEADER COM BOTÃO DE CADASTRO -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center">
             <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary">
@@ -14,129 +13,181 @@
             </div>
             <div>
                 <h3 class="fw-bold text-secondary m-0">Instrutores</h3>
-                <small class="text-muted">Gerencie o cadastro da equipe de ensino.</small>
+                <small class="text-muted">Gerencie o cadastro da equipe.</small>
             </div>
         </div>
-        <div class="badge bg-white text-secondary border shadow-sm py-2 px-3">
-            <i class="bi bi-people-fill me-1 text-primary"></i> Total: @(FilteredList.Count)
+
+        <div class="d-flex gap-3">
+            <!-- Campo de Busca -->
+            <div class="input-group shadow-sm" style="width: 250px;">
+                <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-0" placeholder="Buscar..." @bind="SearchTerm" @bind:event="oninput" />
+            </div>
+
+            <!-- BOTÃO VERDE DE CADASTRAR -->
+            <button class="btn btn-success shadow-sm fw-bold px-4" @onclick="OpenCreateModal">
+                <i class="bi bi-plus-lg me-2"></i> Cadastrar Novo
+            </button>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- COLUNA ESQUERDA: APENAS CADASTRO (Restaurado) -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 fw-bold text-secondary border-bottom-0">
-                    <i class="bi bi-plus-circle me-2 text-primary"></i>Novo Cadastro
-                </div>
-                <div class="card-body">
-                    <EditForm Model="NewInstructor" OnValidSubmit="HandleCreate" FormName="CreateInstructorForm">
-                        <DataAnnotationsValidator />
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary small">NOME COMPLETO</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
-                                <InputText @bind-Value="NewInstructor.Name" 
-                                           class="form-control border-start-0 ps-0" 
-                                           placeholder="Ex: MARIA OLIVEIRA" />
+    <!-- GRID DE CARDS -->
+    <div class="row g-3">
+        @foreach (var item in FilteredList)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 card-hover">
+                    <div class="card-body p-3">
+
+                        <!-- Topo do Card -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle bg-secondary text-white">
+                                    @GetInitials(item.Name)
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-dark m-0 text-truncate" style="max-width: 180px;" title="@item.Name">
+                                        @item.Name
+                                    </h6>
+                                    <span class="badge bg-light text-secondary border">@item.Region</span>
+                                </div>
                             </div>
-                            <ValidationMessage For="() => NewInstructor.Name" class="text-danger small mt-1" />
+                            <!-- Ações -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light text-primary" @onclick="() => OpenEditModal(item)">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light text-danger ms-1" @onclick="() => HandleDelete(item.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
-                                <i class="bi bi-save me-2"></i> Salvar Instrutor
-                            </button>
-                        </div>
-                        
-                        @if (!string.IsNullOrEmpty(_message))
-                        {
-                            <div class="alert alert-@_messageType mt-3 small mb-0 py-2 text-center fade-in">
-                                @_message
+                        <!-- Dados Sensíveis (CPF, Email, Senha) -->
+                        <div class="bg-light rounded p-2 mb-3 border border-light">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">CPF</small>
+                                <small class="text-dark font-monospace">@item.Cpf</small>
                             </div>
-                        }
-                    </EditForm>
-                </div>
-            </div>
-        </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">EMAIL</small>
+                                <small class="text-dark text-truncate" style="max-width: 150px;" title="@item.Email">@item.Email</small>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">SENHA</small>
+                                <small class="text-danger fw-bold font-monospace">@item.TeleaulaPassword</small>
+                            </div>
+                        </div>
 
-        <!-- COLUNA DIREITA: LISTA -->
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <h5 class="m-0 fw-bold text-secondary fs-6">Instrutores Cadastrados</h5>
-                    <div class="input-group input-group-sm" style="max-width: 250px;">
-                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control border-start-0" placeholder="Buscar..." @bind="SearchTerm" @bind:event="oninput" />
-                    </div>
-                </div>
+                        <!-- Rodapé (Turnos) -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-1">
+                                <span class="badge @(item.AvailableMorning ? "bg-warning text-dark" : "bg-light text-muted border")">M</span>
+                                <span class="badge @(item.AvailableAfternoon ? "bg-info text-white" : "bg-light text-muted border")">T</span>
+                                <span class="badge @(item.AvailableNight ? "bg-dark text-white" : "bg-light text-muted border")">N</span>
+                            </div>
 
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light text-secondary small text-uppercase">
-                                <tr>
-                                    <th class="ps-4 py-3">Nome</th>
-                                    <th class="text-end pe-4">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in FilteredList)
-                                {
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-circle me-3">@GetInitials(item.Name)</div>
-                                                <span class="fw-semibold text-dark">@item.Name</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <!-- BOTÃO EDITAR: ABRE O MODAL -->
-                                            <button class="btn btn-icon btn-hover-primary me-1" 
-                                                    title="Editar"
-                                                    @onclick="() => OpenEditModal(item)">
-                                                <i class="bi bi-pencil-fill"></i>
-                                            </button>
+                            @if (!string.IsNullOrEmpty(item.Phone))
+                            {
+                                <small class="text-success fw-bold"><i class="bi bi-whatsapp"></i> @item.Phone</small>
+                            }
+                        </div>
 
-                                            <button class="btn btn-icon btn-hover-danger" 
-                                                    title="Excluir"
-                                                    @onclick="() => HandleDelete(item.Id)">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </div>
 
-<!-- MODAL DE EDIÇÃO (JANELA FLUTUANTE) -->
-@if (_showEditModal)
+<!-- MODAL DE CADASTRO / EDIÇÃO -->
+@if (ShowModal)
 {
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1" style="z-index: 10000;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Instrutor</h5>
-                    <button type="button" class="btn-close btn-close-white" @onclick="CloseEditModal"></button>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi @(IsEditing ? "bi-pencil-square" : "bi-person-plus-fill") me-2"></i>
+                        @(IsEditing ? "Editar Instrutor" : "Novo Instrutor")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <EditForm Model="EditingInstructor" OnValidSubmit="HandleUpdate">
+                    <EditForm Model="CurrentInstructor" OnValidSubmit="HandleSave">
                         <DataAnnotationsValidator />
-                        
-                        <label class="form-label fw-bold text-secondary small">NOME COMPLETO</label>
-                        <InputText @bind-Value="EditingInstructor.Name" class="form-control mb-3" />
-                        <ValidationMessage For="() => EditingInstructor.Name" class="text-danger small" />
 
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <button type="button" class="btn btn-light border" @onclick="CloseEditModal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary fw-bold px-4">Atualizar</button>
+                        <div class="row g-3">
+                            <!-- Nome -->
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary">NOME COMPLETO</label>
+                                <InputText @bind-Value="CurrentInstructor.Name" class="form-control" placeholder="Nome do instrutor" />
+                                <ValidationMessage For="() => CurrentInstructor.Name" class="text-danger small" />
+                            </div>
+
+                            <!-- CPF e Telefone -->
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">CPF</label>
+                                <InputText @bind-Value="CurrentInstructor.Cpf" class="form-control" placeholder="000.000.000-00" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">TELEFONE</label>
+                                <InputText @bind-Value="CurrentInstructor.Phone" class="form-control" placeholder="(71) 9999-9999" />
+                            </div>
+
+                            <!-- Email e Senha -->
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">EMAIL TELEAULA</label>
+                                <InputText @bind-Value="CurrentInstructor.Email" class="form-control" placeholder="email@sindauto.com.br" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">SENHA TELEAULA</label>
+                                <InputText @bind-Value="CurrentInstructor.TeleaulaPassword" class="form-control" placeholder="Senha de acesso" />
+                            </div>
+
+                            <!-- Região -->
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-secondary">DELEGACIA / REGIÃO</label>
+                                <InputSelect @bind-Value="CurrentInstructor.Region" class="form-select">
+                                    <option value="Salvador">Salvador</option>
+                                    <option value="Lauro de Freitas">Lauro de Freitas</option>
+                                    <option value="Camaçari">Camaçari</option>
+                                    <option value="Alagoinhas">Alagoinhas</option>
+                                    <option value="Feira de Santana">Feira de Santana</option>
+                                    <option value="V. da Conquista">V. da Conquista</option>
+                                    <option value="Itabuna">Itabuna</option>
+                                    <option value="Juazeiro">Juazeiro</option>
+                                    <option value="Santo Antônio de Jesus">SAJ</option>
+                                </InputSelect>
+                            </div>
+
+                            <!-- Turnos -->
+                            <div class="col-12 mt-3">
+                                <label class="form-label small fw-bold text-secondary d-block">DISPONIBILIDADE</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="CurrentInstructor.AvailableMorning" class="form-check-input" id="m" />
+                                        <label class="form-check-label" for="m">Manhã</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="CurrentInstructor.AvailableAfternoon" class="form-check-input" id="t" />
+                                        <label class="form-check-label" for="t">Tarde</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="CurrentInstructor.AvailableNight" class="form-check-input" id="n" />
+                                        <label class="form-check-label" for="n">Noite</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rodapé do Modal -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light border px-4" @onclick="CloseModal">Cancelar</button>
+                            <button type="submit" class="btn btn-success px-5 fw-bold">
+                                <i class="bi bi-check-lg me-2"></i> Salvar
+                            </button>
                         </div>
                     </EditForm>
                 </div>
@@ -146,12 +197,27 @@
 }
 
 <style>
-    .avatar-circle { width: 35px; height: 35px; background-color: #e2e8f0; color: #475569; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
-    .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 6px; border: none; background: transparent; color: #64748b; transition: all 0.2s; }
-    .btn-icon:hover { background-color: #f1f5f9; color: #334155; }
-    .btn-hover-primary:hover { background-color: #dbeafe; color: #2563eb; }
-    .btn-hover-danger:hover { background-color: #fee2e2; color: #ef4444; }
-    .fade-in { animation: fadeIn 0.5s ease-in; }
-    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .form-control:focus { border-color: #3b82f6; box-shadow: none; background-color: #f8fafc; }
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .card-hover {
+        transition: transform 0.2s;
+    }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+        }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: none;
+        background-color: #f8fafc;
+    }
 </style>

@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <!-- ABA 1: INDIVIDUAL -->
+    <!-- ABA 1: INDIVIDUAL (Removido o botão de importar daqui) -->
     @if (ActiveTab == "Individual")
     {
         <div class="card border-0 shadow-sm mb-4 no-print">
@@ -42,10 +42,11 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold small text-secondary">INSTRUTOR</label>
-                            <InputSelect @bind-Value="InputData.InstructorName" class="form-select">
-                                <option value="">Selecione...</option>
-                                @foreach (var instr in InstructorsList) { <option value="@instr.Name">@instr.Name</option> }
-                            </InputSelect>
+                            
+                            <!-- Autocomplete -->
+                            <SindRelatorios.Components.Shared.InstructorAutocomplete 
+                                AllInstructors="InstructorsList" 
+                                @bind-Value="InputData.InstructorName" />
                             <ValidationMessage For="() => InputData.InstructorName" class="text-danger small"/>
                         </div>
                         <div class="col-md-3">
@@ -75,7 +76,9 @@
 
         @if (ScheduleResult != null && ScheduleResult.Rows.Any())
         {
-            @RenderTable(ScheduleResult, InputData.InstructorName, true)
+            <div class="individual-print-area">
+                @RenderTable(ScheduleResult, InputData.InstructorName, true)
+            </div>
         }
     }
 
@@ -84,18 +87,25 @@
     {
         <div class="card border-0 shadow-sm mb-4 no-print fade-in">
             <div class="card-body p-4 border-start border-4 border-warning">
-                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-collection-play me-2"></i>Configuração do Lote</h6>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-secondary m-0"><i class="bi bi-collection-play me-2"></i>Configuração do Lote</h6>
+                    
+                    <button class="btn btn-sm btn-info text-white fw-bold shadow-sm" @onclick="OpenImportModal">
+                        <i class="bi bi-calendar2-check-fill me-2"></i> Carregar Instrutores da Escala
+                    </button>
+                </div>
                 
                 <div class="row g-3 align-items-end mb-4">
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold">DATA INÍCIO DA TURMA</label>
+                        <label class="form-label small fw-bold">DATA INÍCIO</label>
                         <input type="date" class="form-control" @bind="BatchStartDate" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-bold">CURSO</label>
                         <select class="form-select" @bind="BatchCourseType">
-                            <option value="FirstLicense">Primeira Habilitação (45h)</option>
-                            <option value="Recycling">Reciclagem (30h)</option>
+                            <option value="FirstLicense">Primeira Habilitação</option>
+                            <option value="Recycling">Reciclagem</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -115,7 +125,8 @@
 
                 <hr />
                 
-                <div class="card bg-light border-0" style="max-height: 200px; overflow-y: auto;">
+                <!-- Lista de Checkbox -->
+                <div class="card bg-light border-0" style="max-height: 250px; overflow-y: auto;">
                     <div class="card-body pt-2">
                         <div class="form-check mb-2 border-bottom pb-2 sticky-top bg-light">
                             <input class="form-check-input" type="checkbox" id="selectAll" checked="@BatchAllSelected" @onchange="ToggleBatchAll">
@@ -125,7 +136,7 @@
                             @foreach (var item in BatchSelectionList)
                             {
                                 <div class="col-md-3 mb-1">
-                                    <div class="form-check">
+                                    <div class="form-check @(item.IsSelected ? "bg-warning bg-opacity-25 rounded ps-4 pe-2" : "")">
                                         <input class="form-check-input" type="checkbox" @bind="item.IsSelected" id="instr_@item.Id">
                                         <label class="form-check-label small text-truncate w-100" for="instr_@item.Id">@item.Name</label>
                                     </div>
@@ -143,29 +154,65 @@
                 <div><i class="bi bi-check-circle-fill fs-4 me-2"></i> <strong>@BatchResults.Count</strong> Relatórios Gerados.</div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-success fw-bold px-4" @onclick="HandleBatchExportExcel">Excel (Abas)</button>
-                    <!-- Botão para Imprimir TUDO (Lista Completa) -->
                     <button class="btn btn-dark fw-bold px-4" onclick="window.print()">Imprimir Tudo</button>
                 </div>
             </div>
 
-            @foreach (var result in BatchResults)
-            {
-                var instrName = result.Rows.FirstOrDefault()?.Instructor ?? "Desconhecido";
-                @RenderTable(result, instrName, false)
-            }
+            <div class="batch-print-area">
+                @foreach (var result in BatchResults)
+                {
+                    var instrName = result.Rows.FirstOrDefault()?.Instructor ?? "Desconhecido";
+                    <div class="print-wrapper">
+                        @RenderTable(result, instrName, true)
+                        <div class="page-break"></div>
+                    </div>
+                }
+            </div>
         }
     }
 </div>
 
-<!-- TEMPLATE REUTILIZÁVEL DA TABELA -->
+<!-- MODAL DE IMPORTAÇÃO DE ESCALA -->
+@if (ShowImportModal)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1" style="z-index: 10000;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-info text-dark">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cloud-download-fill me-2"></i>Importar de Escala</h5>
+                    <button type="button" class="btn-close" @onclick="CloseImportModal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var scale in AvailableScales.OrderByDescending(x => x.Date).Take(10))
+                        {
+                            <button class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center"
+                                    @onclick="() => ImportFromScale(scale)">
+                                <div>
+                                    <h6 class="fw-bold m-0">@scale.Date.ToString("dd/MM/yyyy") - @scale.Region</h6>
+                                    <small class="text-muted">
+                                        @(scale.Type == SindRelatorios.Models.Entities.Enums.OpeningType.Recycling ? "Reciclagem" : "Padrão") • 
+                                        @scale.Slots.Count(x => !x.IsExtra) instrutores
+                                    </small>
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                        @if(!AvailableScales.Any())
+                        {
+                            <div class="p-4 text-center text-muted">Nenhuma escala encontrada.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     RenderFragment RenderTable(ScheduleResult result, string instructorName, bool showIndividualActions) => __builder =>
     {
-        // LÓGICA DE CLASSE CSS PARA IMPRESSÃO:
-        // Se PrintTargetName for NULL -> Imprime todos (class "print-visible")
-        // Se PrintTargetName for IGUAL ao nome deste instrutor -> Imprime este (class "print-visible")
-        // Se não -> Esconde (class "print-hidden")
-        
         string printClass = (PrintTargetName == null || PrintTargetName == instructorName) ? "print-visible" : "print-hidden";
 
         <div class="card border-0 shadow-sm mb-5 report-card @printClass">
@@ -176,13 +223,8 @@
                 </div>
                 <div class="d-flex gap-2 no-print">
                     @if(showIndividualActions) {
-                         <!-- AQUI: Chama a função PrintIndividual passando o nome deste instrutor -->
-                         <button class="btn btn-outline-secondary btn-sm" @onclick="() => PrintIndividual(instructorName)">
-                             <i class="bi bi-printer"></i> Imprimir
-                         </button>
-                         <button class="btn btn-success btn-sm" @onclick="() => HandleExportExcel(result, instructorName)">
-                             <i class="bi bi-file-earmark-excel"></i> Excel
-                         </button>
+                         <button class="btn btn-outline-secondary btn-sm" @onclick="() => PrintIndividual(instructorName)"><i class="bi bi-printer"></i> Imprimir</button>
+                         <button class="btn btn-success btn-sm" @onclick="() => HandleExportExcel(result, instructorName)"><i class="bi bi-file-earmark-excel"></i> Excel</button>
                     }
                 </div>
             </div>
@@ -219,11 +261,16 @@
                                             <div class="col-12"><input type="text" class="form-control form-control-sm" @bind="row.Subject" /></div>
                                         </div>
                                     </td>
-                                    <td class="text-center"><input type="number" class="form-control form-control-sm" @bind="row.Hours" /></td>
+                                    <input type="number"
+                                           class="form-control form-control-sm"
+                                           value="@row.Hours"
+                                           @onchange="@((ChangeEventArgs e) => {
+                                           row.Hours = int.Parse(e.Value?.ToString() ?? "0");
+                                           RecalculateTotal(result);
+                                       })" />
                                     <td class="text-center no-print">
-                                        <button class="btn btn-success btn-sm" @onclick="() => SaveEdit(result)">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>                                    </td>
+                                        <button class="btn btn-success btn-sm" @onclick="SaveEdit"><i class="bi bi-check-lg"></i></button>
+                                    </td>
                                 }
                                 else
                                 {
@@ -245,8 +292,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Quebra de página só funciona se for em lote, ou apenas ignora no individual -->
-            <div class="page-break"></div>
         </div>
     };
 }
@@ -255,45 +300,26 @@
     .fade-in { animation: fadeIn 0.5s ease-in; }
 
     @@media print {
-        /* 1. ESCONDE TUDO (Globalmente) */
         .no-print, header, nav, .sidebar, .btn-group, .form-control, .btn { display: none !important; }
-        
-        /* Esconde o Wrapper Principal do Layout (Isso remove a sidebar escura) */
         .d-flex.flex-column.bg-dark { display: none !important; }
         
-        /* Garante que o fundo seja branco */
         body { background: white !important; margin: 0; padding: 0; }
-        .container-fluid, .main-content { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+        .container-fluid { padding: 0 !important; width: 100% !important; margin: 0 !important; max-width: 100% !important; }
 
-        /* 2. CONTROLE DE VISIBILIDADE INTELIGENTE */
-        /* Se o elemento tiver a classe print-hidden, suma com ele */
+        .individual-print-area { display: @(ActiveTab == "Individual" ? "block" : "none") !important; }
+        .batch-print-area { display: @(ActiveTab == "Lote" ? "block" : "none") !important; }
+
         .print-hidden { display: none !important; }
-        
-        /* Se tiver print-visible, mostre */
-        .print-visible { 
-            display: block !important; 
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-        }
+        .print-visible { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
 
-        /* 3. ESTILIZAÇÃO DA TABELA */
-        .report-card {
-            border: none !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding-top: 20px;
-        }
-        
-        .print-title { color: #000 !important; font-size: 16pt !important; }
-        
+        .report-card { border: none !important; shadow: none !important; margin: 0 !important; padding-top: 20px; }
+        .print-title { color: #000 !important; font-size: 18pt !important; }
         .print-badge, .print-badge-table { 
             border: 1px solid #000 !important; 
             color: #000 !important; 
             background: transparent !important; 
         }
-
+        
         table { width: 100% !important; border-collapse: collapse !important; }
         th, td { border: 1px solid #000 !important; padding: 4px !important; font-size: 10pt; }
         thead { background-color: #eee !important; -webkit-print-color-adjust: exact; }
